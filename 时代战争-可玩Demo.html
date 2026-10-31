@@ -626,7 +626,7 @@ function update(dt){
   if(best2&&s.tower.cd<=0){
    s.tower.cd=Math.max(.7,1.7-s.age*.08);
    var dmg=(13+11*s.age);
-   var tw=s.baseX,ty=GY-146;
+   var tw=s.baseX,ty=GY+(TOWER_Y[s.age]||-100)-32;
    fx.push({type:'muzzle',x:tw+(s.tower.aimDir)*10,y:ty,t:0});
    var tAge=s.age;
    if(tAge<=2)projs.push({x:tw,y:ty,sx:tw,sy:ty,tx:best2.x,ty:best2.y-20,t:0,dur:Math.max(.2,Math.abs(best2.x-tw)/230),P:PROJ.rock,side:s,base:dmg,tgt:best2,h:Math.min(50,Math.abs(best2.x-tw)*.2)});
@@ -1085,11 +1085,11 @@ function drawBase(s){
   ctx.fillStyle='#58d8e8';ctx.fillRect(-4,-156,8,30);
   ctx.fillStyle='#c8f0ff';ctx.beginPath();ctx.moveTo(-4,-156);ctx.lineTo(0,-166);ctx.lineTo(4,-156);ctx.fill();
  }
- /* 时代炮台：可攻击进入射程的小兵 */
+ /* 时代炮台：立于建筑顶部，可攻击进入射程的小兵 */
  drawTowerPart(a,(s.tower?s.tower.aimDir*dir:1),t);
- // 旗帜
- ctx.strokeStyle='#5a4a30';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-116);ctx.lineTo(0,-146);ctx.stroke();
- ctx.fillStyle=trim;ctx.beginPath();ctx.moveTo(0,-146);ctx.lineTo(22,-140);ctx.lineTo(0,-133);ctx.fill();
+ // 旗帜（移至右侧，避免遮挡炮台）
+ ctx.strokeStyle='#5a4a30';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(42,-58);ctx.lineTo(42,-94);ctx.stroke();
+ ctx.fillStyle=trim;ctx.beginPath();ctx.moveTo(42,-94);ctx.lineTo(62,-87);ctx.lineTo(42,-79);ctx.fill();
  ctx.restore();
  if(s.invulnT>0){
   ctx.strokeStyle='rgba(90,180,255,'+(0.5+0.3*Math.sin(t*8))+')';ctx.lineWidth=3;
@@ -1097,45 +1097,68 @@ function drawBase(s){
   ctx.fillStyle='rgba(120,200,255,.15)';ctx.beginPath();ctx.arc(x,GY-55,72,Math.PI,0);ctx.fill();
  }
  var w=76,r=s.baseHp/s.baseMax,rg=s.baseGhost/s.baseMax;
- drawBar(x-w/2,GY-166,w,6,Math.max(0,r),Math.max(0,rg),r>.4?'#58c840':'#e05040',s.baseMax);
+ drawBar(x-w/2,GY-176,w,6,Math.max(0,r),Math.max(0,rg),r>.4?'#58c840':'#e05040',s.baseMax);
 }
-/* 炮台造型（六档时代样式），原点=基地地面中心 */
+/* 炮台造型（六档时代样式）：原点=该时代建筑顶面中点，塔身向上 ~44px */
+var TOWER_Y=[0,-74,-74,-92,-96,-96,-96,-106,-114,-110,-114];
 function drawTowerPart(a,aim,t){
- ctx.save();ctx.translate(0,-112);
- if(a<=2){ // 投石台
-  ctx.fillStyle='#8a8070';ctx.beginPath();ctx.ellipse(0,2,15,7,0,0,7);ctx.fill();
-  ctx.fillStyle='#6e6656';ctx.beginPath();ctx.ellipse(0,-2,11,5,0,0,7);ctx.fill();
-  ctx.save();ctx.translate(aim*2,-6);ctx.rotate(aim>0?-.55:Math.PI+.55);
-  ctx.strokeStyle='#5c4428';ctx.lineWidth=2.6;ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(15,0);ctx.stroke();
-  ctx.fillStyle='#7a6248';ctx.beginPath();ctx.arc(15,0,3,0,7);ctx.fill();ctx.restore();
-  ctx.lineWidth=1;
- }else if(a<=5){ // 弓箭塔楼
-  ctx.fillStyle='#8a8676';ctx.fillRect(-8,-18,16,20);
-  ctx.fillStyle='#6e6a5c';ctx.fillRect(-10,-22,20,5);
-  for(var bt=-1;bt<2;bt+=2)ctx.fillRect(bt*7-2,-26,4,5);
-  ctx.strokeStyle='#5a4a30';ctx.lineWidth=2;
-  ctx.beginPath();ctx.arc(aim*4,-24,7,-1.1,1.1);ctx.stroke();
-  ctx.strokeStyle='#ddd';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(aim*4+Math.cos(-1.1)*7*aim,-24+Math.sin(-1.1)*7);ctx.lineTo(aim*4+Math.cos(1.1)*7*aim,-24+Math.sin(1.1)*7);ctx.stroke();
- }else if(a<=7){ // 火炮塔
-  ctx.fillStyle='#767e70';ctx.beginPath();ctx.arc(0,-10,11,Math.PI,0);ctx.fill();
-  ctx.fillStyle='#5e6658';ctx.fillRect(-12,-11,24,4);
-  ctx.save();ctx.translate(0,-14);ctx.rotate(aim>0?-.22:Math.PI+.22);
-  ctx.fillStyle='#3a4046';ctx.fillRect(0,-2.6,20,5.2);ctx.fillRect(19,-3.6,5,7.2);ctx.restore();
-  ctx.fillStyle='#4a5044';ctx.beginPath();ctx.arc(0,-12,5,0,7);ctx.fill();
- }else if(a<=9){ // 机枪堡
-  for(var sg=-1;sg<2;sg++){ctx.fillStyle='#a89a6e';ctx.beginPath();ctx.ellipse(sg*8,0,6,3.4,0,0,7);ctx.fill();ctx.fillStyle='#94885e';ctx.beginPath();ctx.ellipse(sg*8,-2.4,6,3,0,0,7);ctx.fill();}
-  ctx.save();ctx.translate(0,-9);
-  ctx.fillStyle='#3e4448';ctx.fillRect(-2,-2,4,7);
-  ctx.rotate(aim>0?-.15:Math.PI+.15);
-  ctx.fillStyle='#2e3438';ctx.fillRect(0,-1.6,17,3.2);ctx.fillRect(4,-3.6,6,2.2);ctx.restore();
- }else{ // 激光塔
-  ctx.fillStyle='#485278';ctx.fillRect(-5,-24,10,26);
-  ctx.strokeStyle='#58d8e8';ctx.lineWidth=1.4;ctx.strokeRect(-5,-24,10,26);ctx.lineWidth=1;
-  var lv=Math.sin(t*4)*2;
+ var ty=TOWER_Y[a]||-100;
+ ctx.save();ctx.translate(0,ty);
+ ctx.strokeStyle='#33291c';ctx.lineWidth=1;
+ if(a<=2){ // 投石高台：木架+配重投臂
+  ctx.strokeStyle='#4e3a20';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(-13,0);ctx.lineTo(-3,-26);ctx.moveTo(13,0);ctx.lineTo(3,-26);ctx.moveTo(0,0);ctx.lineTo(0,-24);ctx.stroke();
+  ctx.fillStyle='#7a5c34';ctx.fillRect(-15,-32,30,6);
+  ctx.fillStyle='#95744a';ctx.fillRect(-15,-32,30,2);
+  ctx.save();ctx.translate(0,-34);ctx.rotate(aim>0?-.5:Math.PI+.5);
+  ctx.strokeStyle='#5c4428';ctx.lineWidth=3.4;ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(20,0);ctx.stroke();ctx.lineWidth=1;
+  ctx.fillStyle='#6e5a3a';ctx.beginPath();ctx.arc(-8,2,4.6,0,7);ctx.fill();
+  ctx.fillStyle='#8a8272';ctx.beginPath();ctx.arc(21,0,5.4,0,7);ctx.fill();
+  ctx.fillStyle='#b8b2a0';ctx.beginPath();ctx.arc(19.6,-1.4,2,0,7);ctx.fill();
+  ctx.restore();
+ }else if(a<=5){ // 箭塔：石砌塔身+垛口+弩
+  ctx.fillStyle='#9a968a';ctx.beginPath();ctx.moveTo(-11,0);ctx.lineTo(-8,-30);ctx.lineTo(8,-30);ctx.lineTo(11,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#b0aca0';ctx.beginPath();ctx.moveTo(-11,0);ctx.lineTo(-8,-30);ctx.lineTo(-3,-30);ctx.lineTo(-5,0);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(60,54,44,.5)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(-9.4,-8);ctx.lineTo(9.4,-8);ctx.moveTo(-8.6,-16);ctx.lineTo(8.6,-16);ctx.moveTo(-8,-24);ctx.lineTo(8,-24);ctx.stroke();
+  for(var m1=-1;m1<2;m1++)ctx.fillRect(m1*6-2.4,-36,4.8,6);
+  ctx.fillStyle='#55503f';ctx.fillRect(-2.2,-19,4.4,7);
+  ctx.save();ctx.translate(aim*5,-24);
+  ctx.fillStyle='#6a5638';ctx.fillRect(-2,-2.4,13,4.8);
+  ctx.strokeStyle='#4a4034';ctx.lineWidth=2.2;
+  ctx.beginPath();ctx.moveTo(9,-6);ctx.lineTo(9,6);ctx.stroke();ctx.lineWidth=1;ctx.strokeStyle='#33291c';
+  ctx.fillStyle='#3a342c';ctx.fillRect(10,-1.6,4,3.2);ctx.restore();
+ }else if(a<=7){ // 火炮塔：石圆台+铸铁炮
+  ctx.fillStyle='#7e8676';ctx.beginPath();ctx.ellipse(0,-4,16,6,0,0,7);ctx.fill();
+  ctx.fillStyle='#96a08c';ctx.beginPath();ctx.ellipse(0,-6,13,4.6,0,0,7);ctx.fill();
+  ctx.fillStyle='#6a7264';ctx.fillRect(-9,-14,18,9);
+  ctx.save();ctx.translate(aim*2,-16);ctx.rotate(aim>0?-.3:Math.PI+.3);
+  ctx.fillStyle='#2e3438';ctx.fillRect(0,-3.4,24,6.8);
+  ctx.fillStyle='#4a5258';ctx.fillRect(0,-3.4,10,6.8);
+  ctx.fillStyle='#23282c';ctx.fillRect(23,-4.4,4,8.8);
+  ctx.fillStyle='#5a6268';ctx.beginPath();ctx.arc(2,4,4.4,0,7);ctx.fill();
+  ctx.restore();
+ }else if(a<=9){ // 机枪堡：混凝土堡+水冷机枪
+  ctx.fillStyle='#8a9298';ctx.beginPath();ctx.arc(0,-2,14,Math.PI,0);ctx.fill();
+  ctx.fillStyle='#a4acb2';ctx.beginPath();ctx.arc(-3,-5,10,Math.PI,0);ctx.fill();
+  ctx.fillStyle='#3e464c';ctx.fillRect(-4,-10,8,4);
+  for(var sg2=-1;sg2<2;sg2++){ctx.fillStyle='#a89a6e';ctx.beginPath();ctx.ellipse(sg2*9,0,5.6,3.2,0,0,7);ctx.fill();ctx.fillStyle='#94885e';ctx.beginPath();ctx.ellipse(sg2*9,-2,5.4,2.8,0,0,7);ctx.fill();}
+  ctx.save();ctx.translate(aim*3,-8);ctx.rotate(aim>0?-.12:Math.PI+.12);
+  ctx.fillStyle='#3e4448';ctx.fillRect(-3,-2.6,6,5.2);
+  ctx.fillStyle='#2a3034';ctx.fillRect(2,-1.8,19,3.6);
+  ctx.fillStyle='#566066';ctx.fillRect(6,-3.4,7,6.8);
+  ctx.fillStyle='#c8a040';ctx.fillRect(-6,-1,4,2.4);ctx.restore();
+ }else{ // 激光塔：合金柱+悬浮能量晶体
+  ctx.fillStyle='#3a4468';ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-6,-30);ctx.lineTo(6,-30);ctx.lineTo(10,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#4e5a88';ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(-6,-30);ctx.lineTo(-1,-30);ctx.lineTo(-4,0);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(88,216,232,.75)';ctx.fillRect(-2,-24,4,18);
+  ctx.strokeStyle='#58d8e8';ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(-9,-6);ctx.lineTo(9,-6);ctx.moveTo(-8,-14);ctx.lineTo(8,-14);ctx.stroke();ctx.lineWidth=1;
+  var lv=Math.sin(t*4)*3;
+  ctx.fillStyle='rgba(88,216,232,'+(.25+.15*Math.sin(t*5))+')';ctx.beginPath();ctx.arc(0,-42+lv,11,0,7);ctx.fill();
   ctx.fillStyle='#58d8e8';
-  ctx.beginPath();ctx.moveTo(0,-34+lv);ctx.lineTo(6,-26+lv);ctx.lineTo(0,-18+lv);ctx.lineTo(-6,-26+lv);ctx.closePath();ctx.fill();
-  ctx.fillStyle='rgba(88,216,232,'+(.35+.2*Math.sin(t*5))+')';ctx.beginPath();ctx.arc(0,-26+lv,9,0,7);ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,-52+lv);ctx.lineTo(7,-42+lv);ctx.lineTo(0,-32+lv);ctx.lineTo(-7,-42+lv);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#d8f8ff';ctx.beginPath();ctx.moveTo(0,-48+lv);ctx.lineTo(3.4,-42+lv);ctx.lineTo(0,-36+lv);ctx.lineTo(-3.4,-42+lv);ctx.closePath();ctx.fill();
  }
  ctx.restore();
 }
@@ -1498,7 +1521,7 @@ function draw(){
   [player,ai].forEach(function(s){
    ctx.fillStyle='#fff';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
    ctx.strokeStyle='rgba(30,22,10,.85)';ctx.lineWidth=3;
-   var tx2=s.baseX,ty2=GY-170;
+   var tx2=s.baseX,ty2=GY-180;
    ctx.strokeText(Math.ceil(s.baseHp)+'/'+s.baseMax,tx2,ty2);
    ctx.fillText(Math.ceil(s.baseHp)+'/'+s.baseMax,tx2,ty2);
    ctx.lineWidth=1;
