@@ -1,0 +1,84 @@
+# ===== 操作系统 =====
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# ===== 编辑器 / IDE =====
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# ===== 依赖 / 构建产物 =====
+node_modules/
+dist/
+build/
+out/
+target/
+bin/
+obj/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+
+# ===== 日志 =====
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== 环境变量 / 密钥 =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
+config.local.*
+
+# ===== 临时文件 =====
+.cowork-temp/
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# ===== 测试与覆盖率 =====
+coverage/
+.nyc_output/
+*.lcov
+
+# ===== 大型无关资源 =====
+cloudflared.exe
+*.exe
+*.msi
+*.dmg
+*.iso
+*.zip
+*.7z
+*.rar
+*.mp4
+*.mov
+*.avi
+
+# ===== 本地个人配置 =====
+*.local
+.local/
