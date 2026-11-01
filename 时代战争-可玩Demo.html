@@ -1231,7 +1231,9 @@ function drawUnit(u){
   ctx.fillStyle=ft.cape;
   ctx.beginPath();ctx.moveTo(-3,-31);ctx.quadraticCurveTo(-15-fl2,-18,-11-fl2,1);ctx.lineTo(-4,1);ctx.quadraticCurveTo(-8,-18,1,-27);ctx.closePath();ctx.fill();
  }
- if(k==='foot'){
+ var dfn=DRAWFS[d.draw||DRAW_MAP[d.n]];
+ if(dfn){dfn(u,{c1:c1,c2:c2,skin:skin,walk:walk,atk:atk,age:age,out:out});}
+ else if(k==='foot'){
   ctx.fillStyle='#4a3a2e';
   ctx.fillRect(-4.4+walk*2.6,-12,4,12);ctx.fillRect(1.2-walk*2.6,-12,4,12);
   ctx.fillStyle='#2e2620';ctx.fillRect(-4.4+walk*2.6,-2.6,4,2.6);ctx.fillRect(1.2-walk*2.6,-2.6,4,2.6);
@@ -1353,6 +1355,575 @@ function drawBar(x,y,w,h,ratio,ghost,main,maxHp){
  ctx.strokeStyle='rgba(70,54,30,.95)';ctx.lineWidth=1;ctx.strokeRect(x-.5,y-.5,w+1,h+1);
 }
 function A2eye(u){return u.side===player?'#58c8ff':'#ff8880';}
+/* ================= 独立建模函数库：每个单位专属造型 ================= */
+var DRAWFS={};
+/* —— 共享原语 —— */
+function dline(x1,y1,x2,y2,w,c){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.lineWidth=1;}
+function dhead(x,y,r,skin,out){ctx.fillStyle=skin;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.strokeStyle=out;ctx.stroke();}
+function deye(x,y){ctx.fillStyle='#2a221a';ctx.fillRect(x,y,1.8,2.2);}
+function dtorso(x,y,w,h,c,out,lines){ctx.fillStyle=c;ctx.fillRect(x,y,w,h);ctx.strokeStyle=out;ctx.strokeRect(x,y,w,h);
+ if(lines){ctx.strokeStyle='rgba(30,24,16,.35)';for(var i=1;i<lines;i++){ctx.beginPath();ctx.moveTo(x,y+h*i/lines);ctx.lineTo(x+w,y+h*i/lines);ctx.stroke();}ctx.strokeStyle=out;}}
+function dlegs(walk,c,bootC){ctx.fillStyle=c;
+ ctx.fillRect(-4.4+walk*2.6,-12,4,12);ctx.fillRect(1.2-walk*2.6,-12,4,12);
+ if(bootC){ctx.fillStyle=bootC;ctx.fillRect(-4.4+walk*2.6,-3,4.2,3);ctx.fillRect(1.2-walk*2.6,-3,4.2,3);}}
+function dcape(t,col){var fl=Math.sin(t*7)*2.4;ctx.fillStyle=col;
+ ctx.beginPath();ctx.moveTo(-3,-31);ctx.quadraticCurveTo(-15-fl,-18,-11-fl,1);ctx.lineTo(-4,1);ctx.quadraticCurveTo(-8,-18,1,-27);ctx.closePath();ctx.fill();}
+/* —— T1 远古蛮荒 —— */
+DRAWFS.wildman=function(u,P){
+ ctx.save();ctx.rotate(.14); // 弓背前倾
+ ctx.fillStyle='#4a3420';ctx.fillRect(-5+P.walk*2.6,-11,4.6,11);ctx.fillRect(1.4-P.walk*2.6,-11,4.6,11); // 光脚
+ dtorso(-6,-22,13,11,P.c1,P.out);
+ ctx.fillStyle=P.c2;ctx.beginPath();ctx.moveTo(-6,-22);ctx.lineTo(7,-22);ctx.lineTo(4,-13);ctx.lineTo(-6,-13);ctx.closePath();ctx.fill(); // 兽皮斜挎
+ dhead(2,-29,7.6,P.skin,P.out);
+ ctx.fillStyle='#4a3420';ctx.beginPath();ctx.arc(2,-31,7.8,Math.PI*.75,Math.PI*1.9);ctx.fill(); // 蓬发
+ for(var h0=0;h0<3;h0++)ctx.fillRect(-1+h0*3.4,-40+h0*2,2.4,4);
+ deye(5,-30);
+ var sw=P.atk>.3?P.atk:0; // 拖地粗棒
+ dline(-1+sw*3,-16,10+sw*5,-2-sw*10,3.6,'#7a5a34');
+ ctx.fillStyle='#5e4a30';ctx.beginPath();ctx.arc(10+sw*5,-2-sw*10,3.4,0,7);ctx.fill();
+ ctx.restore();
+};
+DRAWFS.slinger=function(u,P){
+ dlegs(P.walk,'#6a5a3e','#4a3c28');
+ dtorso(-4.4,-21,9,10,P.c1,P.out);
+ ctx.fillStyle=P.c2;ctx.fillRect(-4.4,-21,9,3); // 束腰
+ dhead(0,-27,6.2,P.skin,P.out);
+ ctx.fillStyle=P.c2;ctx.beginPath();ctx.arc(0,-28,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.4,-28,12.8,2); // 包头布
+ ctx.fillStyle='#d83828';ctx.fillRect(4.4,-30,3,2.4); // 布结
+ deye(3,-28);
+ var sw=P.atk; // 头顶甩索
+ ctx.save();ctx.translate(0,-24);ctx.rotate(-.6+sw*Math.sin(u.animT*22)*1.6);
+ dline(0,0,14,-4,1.8,'#8a6a3e');ctx.fillStyle='#a08868';ctx.beginPath();ctx.arc(15,-4.6,2.8,0,7);ctx.fill();ctx.restore();
+};
+/* —— T2 炎黄部落 —— */
+DRAWFS.tribal=function(u,P){
+ dlegs(P.walk,'#5e4426','#3e2c18');
+ dtorso(-7.4,-24,15,13,P.c1,P.out,3); // 壮硕宽肩
+ ctx.fillStyle=P.c2; // 兽皮披肩毛边
+ for(var f0=0;f0<5;f0++)ctx.fillRect(-7.4+f0*3.2,-13,2.6,3.4);
+ dline(-9,-24,-11,-14,3,P.skin);dline(9,-24,12,-15,3,P.skin); // 粗臂
+ ctx.fillStyle='#b8926a';ctx.fillRect(-10,-20,2,2);ctx.fillRect(11,-19,2,2); // 臂环
+ dhead(1,-31,7,P.skin,P.out);
+ ctx.fillStyle='#3e2c18';ctx.beginPath();ctx.arc(1,-32,7.2,Math.PI*.85,Math.PI*2.15);ctx.fill();
+ deye(4.4,-32);
+ ctx.save();ctx.translate(9,-20);ctx.rotate(-.9-P.atk*1.2); // 高举石斧
+ dline(0,0,0,-14,2.6,'#7a5c34');
+ ctx.fillStyle='#9aa2aa';ctx.beginPath();ctx.arc(0,-15,5,Math.PI*.9,Math.PI*2.05);ctx.fill();
+ ctx.fillStyle='#c8d0d8';ctx.beginPath();ctx.arc(0,-16,2.6,Math.PI,0);ctx.fill();ctx.restore();
+};
+DRAWFS.hunter=function(u,P){
+ dlegs(P.walk,'#4e5a34','#38421f');
+ dtorso(-4.6,-21,9.4,11,P.c1,P.out);
+ ctx.fillStyle=P.c2;ctx.fillRect(-4.6,-16,9.4,2.2); // 束带
+ ctx.fillStyle='#6a5230';ctx.fillRect(-8.4,-19,3.4,9); // 背箭筒
+ ctx.strokeStyle='#c8b070';ctx.lineWidth=1.4;
+ ctx.beginPath();ctx.moveTo(-7.6,-19);ctx.lineTo(-8.2,-25);ctx.moveTo(-5.8,-19);ctx.lineTo(-6.6,-26);ctx.stroke();ctx.lineWidth=1; // 羽箭
+ dhead(0,-27,6,P.skin,P.out);
+ tri(-8,-30,0,-40,8,-30,'#8a6a3e');ctx.strokeStyle='#5c4426';ctx.lineWidth=1.2;ctx.strokeRect(-8,-31,16,1.4); // 斗笠
+ deye(3.4,-27);
+ ctx.strokeStyle='#8a6a3e';ctx.lineWidth=2;
+ ctx.beginPath();ctx.arc(6,-18,10,-1.35,1.35);ctx.stroke();ctx.lineWidth=1; // 长弓
+};
+/* —— T3 商周青铜 —— */
+DRAWFS.gewarrior=function(u,P){
+ dlegs(P.walk,P.c2,'#4a3c26');
+ dtorso(-5.6,-24,11.4,13,P.c1,P.out,2);
+ ctx.fillStyle='#8a6a2e';ctx.fillRect(-5.6,-19,11.4,2.4); // 甲带
+ dhead(0,-31,6.8,P.skin,P.out);
+ ctx.fillStyle='#8a7a48';ctx.beginPath();ctx.arc(0,-32,7,Math.PI,0);ctx.fill();ctx.fillRect(-7.2,-33,14.4,2.4);
+ ctx.fillStyle='#d83828';ctx.fillRect(-1.4,-42,2.8,6);ctx.beginPath();ctx.arc(0,-43,2,0,7);ctx.fill(); // 盔缨
+ deye(3,-31);
+ ctx.save();ctx.translate(3,-14);ctx.rotate(-.9-P.atk*.8); // 长戈斜扛过顶
+ dline(-2,10,10,-30,2.4,'#8a6a3e');
+ ctx.fillStyle='#c8a050';ctx.fillRect(7,-32,9,3.2);
+ ctx.fillStyle='#e0c060';ctx.fillRect(8.4,-31.2,6.4,1.4);
+ ctx.fillStyle='#d83828';ctx.beginPath();ctx.arc(10,-31,2.6,0,7);ctx.fill();
+ ctx.restore();
+};
+DRAWFS.shieldguard=function(u,P){
+ dlegs(P.walk,P.c2,'#3c3020');
+ dtorso(-6.4,-24,13,13,P.c1,P.out,3);
+ ctx.fillStyle='#8a6a2e';ctx.fillRect(-6.4,-14,13,3.4); // 甲裙
+ dhead(0,-31,6.4,P.skin,P.out);
+ ctx.fillStyle='#a88850';ctx.beginPath();ctx.arc(0,-32,6.8,Math.PI*.95,Math.PI*2.05);ctx.fill();
+ deye(3.2,-31);
+ ctx.fillStyle='#c8b080';ctx.beginPath();ctx.arc(-7,-18,9.4,0,7);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke(); // 大圆盾
+ ctx.fillStyle='#a08850';ctx.beginPath();ctx.arc(-7,-18,6,0,7);ctx.fill();
+ ctx.fillStyle='#8a6a3e';ctx.beginPath();ctx.arc(-7,-18,2.4,0,7);ctx.fill();
+ ctx.fillStyle='#d83828';ctx.beginPath();ctx.arc(-7,-18,1,0,7);ctx.fill(); // 盾徽
+ dline(5,-20,10,-27,2.6,'#c8ced6'); // 短剑
+};
+DRAWFS.zhouarcher=function(u,P){
+ dlegs(P.walk,'#4e6034','#38441f');
+ dtorso(-4.2,-22,8.8,12,P.c1,P.out);
+ ctx.fillStyle='#e0d0a8';ctx.fillRect(-4.2,-22,8.8,2.2); // 筒袖口
+ dhead(0,-28,6,P.skin,P.out);
+ ctx.fillStyle=P.c2;ctx.beginPath();ctx.arc(0,-29,6.2,Math.PI,0);ctx.fill();
+ ctx.fillStyle='#d83828';ctx.fillRect(-1.2,-38,2.4,5);
+ deye(3,-28);
+ ctx.fillStyle='#6a5230';ctx.fillRect(6.4,-20,3.2,10);ctx.strokeStyle='#c8b070';ctx.lineWidth=1.2;
+ ctx.beginPath();ctx.moveTo(7,-20);ctx.lineTo(6.4,-27);ctx.moveTo(9,-20);ctx.lineTo(8.8,-27);ctx.stroke();ctx.lineWidth=1; // 箭袋
+ var ar=P.atk;ctx.strokeStyle='#8a6a3e';ctx.lineWidth=2;
+ ctx.beginPath();ctx.arc(4+ar*3,-16,9,-1.3,1.3);ctx.stroke();ctx.lineWidth=1; // 低持反弓
+ dline(4+ar*3,-25,4+ar*3+ar*6,-14,1.6,'#caa96a'); // 搭箭
+};
+/* —— T4 战国铁血 —— */
+DRAWFS.weizu=function(u,P){
+ dlegs(P.walk,'#3e4650','#282e36');
+ dtorso(-6.4,-24,13,13,P.c1,P.out,3);
+ ctx.fillStyle='#5a646e';ctx.fillRect(-7.4,-25,15.4,4); // 肩甲
+ ctx.fillStyle='#5a646e';ctx.fillRect(-6.4,-14,13.4,3);
+ dhead(0,-30,6.6,'#c89a70',P.out);
+ ctx.fillStyle='#4a525c';ctx.beginPath();ctx.arc(0,-31,7,Math.PI*.9,Math.PI*2.1);ctx.fill();
+ ctx.fillStyle='#4a525c';ctx.fillRect(-7,-31,14,5);ctx.fillRect(-7.4,-29,2.6,4);ctx.fillRect(4.8,-29,2.6,4); // 护颊
+ ctx.fillStyle='#1a1e24';ctx.fillRect(-2,-30,4,1.8); // 眼缝
+ ctx.save();ctx.translate(6,-16);ctx.rotate(-.4-P.atk*.9); // 双手重剑
+ ctx.fillStyle='#c8ced6';ctx.fillRect(-1.8,-17,3.6,19);
+ ctx.fillStyle='#f0f4f8';ctx.fillRect(-.6,-17,1.2,19);
+ ctx.fillStyle='#8a7a4a';ctx.fillRect(-4,1,9,2.6);ctx.restore();
+};
+DRAWFS.zhaorider=function(u,P){
+ ctx.fillStyle='#6e6050';ctx.beginPath();ctx.ellipse(0,-16,12.6,7.6,0,0,7);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle='#5e5244';ctx.fillRect(-4,-24,8,4); // 鞍
+ ctx.fillStyle='#6e6050';ctx.fillRect(8.4,-26,5.4,10);ctx.beginPath();ctx.arc(11,-27,4,0,7);ctx.fill();ctx.stroke();
+ tri(13,-31,15,-36,17,-31,'#e0d8c8');
+ ctx.fillStyle='#4a3a2e';ctx.fillRect(-9.4+P.walk*2.8,-9,3.8,9);ctx.fillRect(5.4-P.walk*2.8,-9,3.8,9);
+ dline(-11,-19,-14,-11,2,'#5e5244'); // 尾
+ ctx.save();ctx.translate(-2,-27);
+ ctx.fillStyle='#4a3a2e';ctx.fillRect(-3.4+P.walk,-11,3.4,11);ctx.fillRect(1.2-P.walk,-11,3.4,11);
+ dtorso(-5,-22,10.4,11,P.c2,P.out,2);
+ dhead(0,-29,6,P.skin,P.out);
+ ctx.fillStyle='#3e4650';ctx.beginPath();ctx.arc(0,-30,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.4,-31,12.8,2.4);
+ deye(3,-29);ctx.restore();
+ dline(9,-25,17,-34,2.4,'#7a5c34'); // 骑枪
+ tri(17,-34,21,-36,19,-30,'#8a7a4a');
+};
+DRAWFS.crossbower=function(u,P){
+ dlegs(P.walk,'#48545c','#30383e');
+ dtorso(-5,-22,10.4,12,P.c1,P.out);
+ ctx.fillStyle='#5a646c';ctx.fillRect(-6,-23,12.4,3.6); // 护肩
+ dhead(0,-28,6.2,P.skin,P.out);
+ ctx.fillStyle='#58646c';ctx.beginPath();ctx.arc(0,-29,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.6,-29,13.2,2.2);
+ deye(3,-28);
+ ctx.fillStyle='#6a5230';ctx.fillRect(-9,-17,4,7); // 弹袋
+ ctx.save();ctx.translate(5,-19);ctx.rotate(P.atk*-.06); // 重弩前指
+ ctx.fillStyle='#6a5638';ctx.fillRect(-4,-2,15,4);
+ ctx.strokeStyle='#4a4034';ctx.lineWidth=2.4;dline(4,-8,4,8,2.4,'#4a4034');
+ ctx.fillStyle='#3a342c';ctx.fillRect(-4,-4,7,8);
+ ctx.fillStyle='#d8dfe8';ctx.fillRect(-2,-1,14,1.6);ctx.restore();
+};
+/* —— T5 大汉雄风 —— */
+DRAWFS.yulinrider=function(u,P){
+ ctx.fillStyle='#eceae2';ctx.beginPath();ctx.ellipse(0,-16,12.8,7.6,0,0,7);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle='#d8d4c8';ctx.fillRect(-4.4,-24,9,4.4);
+ ctx.fillStyle='#eceae2';ctx.fillRect(8.6,-26,5.4,10);ctx.beginPath();ctx.arc(11.2,-27,4.2,0,7);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#4a90d8';ctx.fillRect(10.4,-31,3,4); // 蓝辔
+ ctx.fillStyle='#4a3a2e';ctx.fillRect(-9.4+P.walk*2.8,-9,3.8,9);ctx.fillRect(5.4-P.walk*2.8,-9,3.8,9);
+ ctx.save();ctx.translate(-2,-27);
+ ctx.fillStyle='#4a3a2e';ctx.fillRect(-3.4+P.walk,-11,3.4,11);ctx.fillRect(1.2-P.walk,-11,3.4,11);
+ dtorso(-5,-22,10.4,11,P.c1,P.out,2);
+ ctx.fillStyle='#c03828';ctx.fillRect(-5,-22,10.4,2.6); // 红披襟
+ dhead(0,-29,6,P.skin,P.out);
+ ctx.fillStyle='#d8b050';ctx.beginPath();ctx.arc(0,-30,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.6,-31,13.2,2.4);
+ ctx.fillStyle='#d83828';ctx.fillRect(-1.2,-40,2.4,6);ctx.beginPath();ctx.arc(0,-41,2,0,7);ctx.fill();
+ deye(3,-29);ctx.restore();
+ ctx.save();ctx.translate(8,-24);ctx.rotate(-.5-P.atk*1.1); // 环首刀挥砍
+ ctx.fillStyle='#e0e6ee';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(12,-3,15,-13);ctx.lineTo(13,-14);ctx.quadraticCurveTo(9,-6,0,-2);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#c8a040';ctx.beginPath();ctx.arc(-1,1,2.4,0,7);ctx.fill();ctx.restore();
+};
+DRAWFS.xianzhen=function(u,P){
+ dlegs(P.walk,P.c2,'#3c362c');
+ dtorso(-6.4,-24,13,13,P.c1,P.out,3);
+ dhead(0,-31,6.4,P.skin,P.out);
+ ctx.fillStyle='#787060';ctx.beginPath();ctx.arc(0,-32,6.6,Math.PI,0);ctx.fill();
+ deye(3,-31);
+ ctx.fillStyle='#8a6a3e';ctx.fillRect(-17,-38,9,38); // 落地塔盾
+ ctx.strokeStyle=P.out;ctx.strokeRect(-17,-38,9,38);
+ ctx.fillStyle='#a08850';ctx.fillRect(-15.4,-36,5.8,34);
+ ctx.fillStyle='#c8a040';ctx.beginPath();ctx.arc(-12.5,-28,2.2,0,7);ctx.fill();
+ dline(4,-22,9,-28,2.4,'#c8ced6'); // 探出的剑
+};
+DRAWFS.leiliche=function(u,P){
+ ctx.fillStyle='#4a3a2e';
+ ctx.beginPath();ctx.moveTo(-16,0);ctx.lineTo(0,-30);ctx.lineTo(16,0);ctx.closePath();ctx.fill(); // A字架
+ ctx.strokeStyle='#33291c';ctx.stroke();
+ ctx.fillStyle='#3e3020';ctx.fillRect(-11,-14,22,9); // 配重箱
+ ctx.strokeStyle='#33291c';ctx.strokeRect(-11,-14,22,9);
+ ctx.fillStyle='#2e241a';ctx.fillRect(-8,-12,16,5);
+ ctx.fillStyle='#4a3a2e';ctx.fillRect(-7,-4.4,14,4.4);ctx.beginPath();ctx.arc(-7,-1,4,0,7);ctx.arc(7,-1,4,0,7);ctx.fill();ctx.stroke(); // 轮
+ ctx.save();ctx.translate(0,-30);ctx.rotate(-.7-P.atk*.5); // 抛臂
+ dline(-16,0,22,0,3.4,'#5e4830');
+ ctx.fillStyle='#8a8272';ctx.beginPath();ctx.arc(24,0,5.4,0,7);ctx.fill();
+ ctx.fillStyle='#33291c';ctx.fillRect(-19,-4,8,8);ctx.restore();
+};
+/* —— T6 盛唐金甲 —— */
+DRAWFS.modaoman=function(u,P){
+ dlegs(P.walk,'#4a4438','#2e2a20');
+ dtorso(-7,-24,14,13,P.c1,P.out,2);
+ ctx.fillStyle=P.c2;ctx.fillRect(-8.4,-26,17.4,4.6); // 宽肩甲
+ ctx.fillStyle='#f0e6c8';ctx.beginPath();ctx.arc(0,-19,2.6,0,7);ctx.fill(); // 护心镜
+ dhead(0,-31,6.6,P.skin,P.out);
+ ctx.fillStyle='#d8b050';ctx.beginPath();ctx.arc(0,-32,6.8,Math.PI,0);ctx.fill();ctx.fillRect(-7.2,-33,14.4,2.6);
+ tri(-8,-33,-6,-40,-3.4,-33,'#e8c860');tri(8,-33,6,-40,3.4,-33,'#e8c860'); // 凤翅
+ ctx.fillStyle='#d83828';ctx.fillRect(-1.4,-43,2.8,8);
+ deye(3,-31);
+ ctx.save();ctx.translate(4,-18);ctx.rotate(-1-P.atk*.7); // 陌刀扛肩
+ dline(-6,10,14,-26,3,'#6a5638');
+ ctx.fillStyle='#d8dee6';ctx.beginPath();ctx.moveTo(12,-22);ctx.lineTo(22,-27);ctx.lineTo(19,-17);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#d83828';ctx.beginPath();ctx.arc(11,-21,2.4,0,7);ctx.fill();ctx.restore();
+};
+DRAWFS.xuanjiarider=function(u,P){
+ ctx.fillStyle=P.c2;ctx.beginPath();ctx.ellipse(0,-16,13,8,0,0,7);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke(); // 马披甲
+ ctx.strokeStyle='rgba(120,130,150,.4)';ctx.beginPath();ctx.moveTo(-8,-22);ctx.lineTo(-8,-10);ctx.moveTo(0,-24);ctx.lineTo(0,-9);ctx.moveTo(8,-22);ctx.lineTo(8,-10);ctx.stroke();
+ ctx.fillStyle='#1a1a22';ctx.fillRect(7,-27,6.4,10);ctx.beginPath();ctx.arc(11.4,-28,4.4,0,7);ctx.fill();ctx.stroke(); // 马头甲
+ tri(13.4,-32,15.4,-37,17.4,-32,'#2a2a34');
+ ctx.fillStyle='#26262e';ctx.fillRect(-9.4+P.walk*2.8,-9,3.8,9);ctx.fillRect(5.4-P.walk*2.8,-9,3.8,9);
+ ctx.save();ctx.translate(-2,-27);
+ ctx.fillStyle='#26262e';ctx.fillRect(-3.4+P.walk,-11,3.4,11);ctx.fillRect(1.2-P.walk,-11,3.4,11);
+ dtorso(-5,-22,10.4,11,'#3a3a48',P.out,2);
+ ctx.fillStyle='#8a94a8';ctx.fillRect(-5,-22,10.4,2.4);
+ dhead(0,-29,6,P.skin,P.out);
+ ctx.fillStyle='#4a4a58';ctx.beginPath();ctx.arc(0,-30,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.6,-31,13.2,2.4);
+ ctx.fillStyle='#ff8880';ctx.fillRect(1.6,-29.6,2.6,2);ctx.restore(); // 红目
+ ctx.save();ctx.translate(8,-23);ctx.rotate(-.6-P.atk);dline(0,0,14,-10,2.6,'#5a5a66');ctx.restore();
+};
+DRAWFS.chuangnu=function(u,P){
+ ctx.fillStyle='#5a4830'; // 床架
+ ctx.fillRect(-14,-10,28,10);
+ ctx.strokeStyle='#33291c';ctx.strokeRect(-14,-10,28,10);
+ ctx.fillStyle='#4a3a26';tri(-14,0,-6,-22,2,0,'#4a3a26');tri(-2,0,6,-22,14,0,'#4a3a26'); // 双弓架
+ ctx.strokeStyle='#3a2e1c';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(-8,-20);ctx.quadraticCurveTo(0,-28,8,-20);ctx.stroke(); // 弓弦弧
+ ctx.lineWidth=1;
+ ctx.fillStyle='#6a5638';ctx.fillRect(-3,-18,20,4); // 滑轨
+ ctx.fillStyle='#d8dfe8';ctx.beginPath();ctx.moveTo(16,-19);ctx.lineTo(26,-16);ctx.lineTo(16,-14);ctx.closePath();ctx.fill(); // 大箭
+ ctx.fillStyle='#8a7a4a';ctx.fillRect(-4,-6,8,6);ctx.beginPath();ctx.arc(-4,-1,3.4,0,7);ctx.fill();
+};
+/* —— T7 宋元烽火 —— */
+DRAWFS.tuhuogun=function(u,P){
+ dlegs(P.walk,'#5c5844','#403c2c');
+ dtorso(-5.4,-23,11,12,P.c1,P.out,2);
+ ctx.fillStyle=P.c2;ctx.fillRect(-5.4,-16,11,2.6);
+ dhead(0,-29,6.2,P.skin,P.out);
+ ctx.fillStyle='#6a6a5a';ctx.beginPath();ctx.arc(0,-30,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.6,-31,13.2,2.2);
+ deye(3,-29);
+ ctx.save();ctx.translate(5,-19);ctx.rotate(P.atk*-.08); // 突火枪：竹节长管
+ ctx.fillStyle='#9a8a5a';ctx.fillRect(-3,-2.6,22,5.2);
+ ctx.strokeStyle='#7a6a42';for(var b0=4;b0<20;b0+=5){ctx.beginPath();ctx.moveTo(b0,-2.6);ctx.lineTo(b0,2.6);ctx.stroke();}
+ ctx.fillStyle='#3a3a3e';ctx.fillRect(18,-1.6,5,3.2);
+ ctx.fillStyle='#ff9040';ctx.beginPath();ctx.arc(24,0,2.2+P.atk*1.6,0,7);ctx.fill();ctx.restore();
+};
+DRAWFS.huippao=function(u,P){
+ ctx.fillStyle='#4e4a42';tri(-15,0,-8,-20,-1,0,'#4e4a42');tri(1,0,8,-20,15,0,'#4e4a42');
+ ctx.strokeStyle='#332f28';ctx.stroke();
+ ctx.fillStyle='#5e5a50';ctx.fillRect(-10,-20,20,8);ctx.strokeStyle='#332f28';ctx.strokeRect(-10,-20,20,8); // 巨配重
+ ctx.fillStyle='#3e3a32';ctx.fillRect(-7,-18,14,4);
+ ctx.save();ctx.translate(0,-20);ctx.rotate(-.9-P.atk*.4);
+ dline(-6,0,26,0,3,'#5a4630');ctx.restore();
+ ctx.fillStyle='#40403e';ctx.beginPath();ctx.arc(26+Math.sin(u.animT)*.6,-(20+Math.sin(u.animT)*.6+26*Math.sin(.9)),5,0,7);ctx.fill(); // 炮弹
+ ctx.fillStyle='#4a3a26';ctx.fillRect(-9,-4,18,4);ctx.beginPath();ctx.arc(-9,-1,3.4,0,7);ctx.fill();ctx.beginPath();ctx.arc(9,-1,3.4,0,7);ctx.fill();
+};
+DRAWFS.zhentian=function(u,P){
+ dlegs(P.walk,'#5c4c38','#403424');
+ dtorso(-5.6,-23,11.4,12,P.c1,P.out,2);
+ ctx.fillStyle='#6a4e2e';ctx.fillRect(-6.6,-24,13.4,3.4); // 皮甲肩
+ dhead(0,-29,6.2,P.skin,P.out);
+ ctx.fillStyle=P.c2;ctx.beginPath();ctx.arc(0,-30,6.4,Math.PI,0);ctx.fill();
+ ctx.fillStyle='#d8dfe8';ctx.fillRect(-6.6,-31,13.2,2);
+ deye(3,-29);
+ ctx.fillStyle='#4e4a42';ctx.beginPath();ctx.arc(-7,-13,3.6,0,7);ctx.fill();ctx.beginPath();ctx.arc(-6,-6.4,3.6,0,7);ctx.fill(); // 腰挂双雷
+ ctx.strokeStyle='#d83828';ctx.lineWidth=1.2;
+ ctx.beginPath();ctx.moveTo(-7,-17);ctx.quadraticCurveTo(-5,-19,-3.4,-17.6);ctx.stroke();ctx.lineWidth=1; // 引线
+ ctx.save();ctx.translate(7,-20);ctx.rotate(-P.atk*.7); // 举雷欲掷
+ ctx.fillStyle='#4e4a42';ctx.beginPath();ctx.arc(0,-6,4.2,0,7);ctx.fill();
+ ctx.fillStyle='#6a655a';ctx.beginPath();ctx.arc(0,-6,2.6,0,7);ctx.fill();
+ dline(0,-10,1.4,-13.4,1.2,'#d83828');ctx.restore();
+};
+/* —— T8 大明神机 —— */
+DRAWFS.shenji=function(u,P){
+ dlegs(P.walk,'#5a3630','#3a241f');
+ dtorso(-5.6,-23,11.4,12,P.c1,P.out,3); // 红胖袄横纹
+ dhead(0,-29,6.2,P.skin,P.out);
+ ctx.fillStyle='#3a4450';ctx.beginPath();ctx.arc(0,-30,7,Math.PI,0);ctx.fill();
+ ctx.fillStyle='#5a6a7a';ctx.beginPath();ctx.arc(0,-33,3.8,Math.PI,0);ctx.fill(); // 明帽顶
+ ctx.fillStyle='#c03828';ctx.fillRect(-7.4,-32,14.8,1.8); // 帽沿红缨
+ deye(3,-29);
+ ctx.save();ctx.translate(5,-19);ctx.rotate(P.atk*-.06); // 三眼铳平举
+ ctx.fillStyle='#3a3e44';ctx.fillRect(-3,-3.4,22,6.6);
+ ctx.fillStyle='#23282c';for(var e0=0;e0<3;e0++)ctx.beginPath(),ctx.arc(19,(e0-1)*2.1,1.3,0,7),ctx.fill();
+ ctx.fillStyle='#ff9040';for(e0=0;e0<3;e0++)ctx.beginPath(),ctx.arc(20.4,(e0-1)*2.1,.9+P.atk*1.4,0,7),ctx.fill();ctx.restore();
+};
+DRAWFS.fulangche=function(u,P){
+ ctx.fillStyle='#6a7464';ctx.fillRect(-14,-16,28,9);ctx.strokeStyle=P.out;ctx.strokeRect(-14,-16,28,9);
+ ctx.fillStyle='#464e3e';ctx.fillRect(-12,-8,24,4);
+ ctx.fillStyle='#2e3438';ctx.beginPath();ctx.arc(-8,-2,4.4,0,7);ctx.arc(8,-2,4.4,0,7);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#8a9298';ctx.beginPath();ctx.arc(-8,-2,2,0,7);ctx.arc(8,-2,2,0,7);ctx.fill();
+ ctx.save();ctx.translate(4,-16);ctx.rotate(-.14-P.atk*.1); // 佛郎机炮
+ ctx.fillStyle='#3a4046';ctx.fillRect(0,-3.4,24,6.8);ctx.fillStyle='#4e5860';ctx.fillRect(0,-3.4,9,6.8);
+ ctx.fillStyle='#23282c';ctx.fillRect(23,-4.4,4,8.8);ctx.restore();
+ ctx.fillStyle='#5c4c34';ctx.fillRect(-17,-13,4,13); // 楯
+};
+DRAWFS.pianxiang=function(u,P){
+ ctx.fillStyle=P.c1;ctx.fillRect(-16,-24,32,17);ctx.strokeStyle=P.out;ctx.strokeRect(-16,-24,32,17); // 厢体
+ ctx.fillStyle=P.c2;ctx.fillRect(-16,-24,32,5);
+ ctx.strokeStyle='rgba(30,24,16,.4)';ctx.beginPath();ctx.moveTo(-16,-14);ctx.lineTo(16,-14);ctx.moveTo(-16,-9);ctx.lineTo(16,-9);ctx.stroke();
+ ctx.fillStyle='#c8a050';ctx.fillRect(-18,-22,3.4,15); // 侧盾板
+ ctx.fillStyle='#2e3438';ctx.beginPath();ctx.roundRect(-18,-8,36,8,4);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle='#8a9298';for(var w0=-12;w0<=12;w0+=6){ctx.beginPath();ctx.arc(w0,-4,2.8,0,7);ctx.fill();}
+ ctx.fillStyle='#3a4046';ctx.fillRect(13,-22,8,4.4);ctx.fillRect(20,-21,4,3); // 炮口
+ ctx.fillStyle='#c03828';ctx.fillRect(-14,-27,28,3); // 厢顶
+};
+/* —— T9 近代风云 —— */
+DRAWFS.jiguaner=function(u,P){
+ dlegs(P.walk,'#4a5238','#323a24');
+ dtorso(-5.6,-23,11.4,12,P.c1,P.out,2);
+ ctx.fillStyle='#3c4c2c';ctx.fillRect(-6.6,-24,13.4,3.4); // 钢盔沿
+ dhead(0,-29,6.2,'#d8b088',P.out);
+ ctx.fillStyle='#5e6a44';ctx.beginPath();ctx.arc(0,-30,6.6,Math.PI,0);ctx.fill();ctx.fillRect(-6.8,-31,13.6,2.6);
+ deye(3,-29);
+ ctx.fillStyle='#c8a040';ctx.fillRect(-5,-18,10,2.2); // 弹链
+ ctx.fillStyle='#8a7440';for(var b1=-4;b1<5;b1+=2.4)ctx.fillRect(b1,-18,1.6,2.2);
+ ctx.save();ctx.translate(4,-19);ctx.rotate(P.atk*-.05); // 架设机枪
+ ctx.fillStyle='#2e3438';ctx.fillRect(-4,-2.6,6,6.6);
+ ctx.fillStyle='#3e464c';ctx.fillRect(2,-2,16,4);
+ ctx.fillStyle='#566066';ctx.fillRect(7,-4,6,7); // 水冷筒
+ ctx.fillStyle='#23282c';ctx.fillRect(18,-1.2,4,2.4);ctx.restore();
+ dline(-2,-12,-8,-2,1.8,'#2e3438'); // 架腿
+};
+DRAWFS.armoredcar=function(u,P){
+ ctx.fillStyle=P.c2;ctx.beginPath();ctx.roundRect(-18,-8,36,8,4);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle='#3a4234';for(var w1=-13;w1<=13;w1+=5.4){ctx.beginPath();ctx.arc(w1,-4,2.6,0,7);ctx.fill();}
+ ctx.fillStyle=P.c1;ctx.fillRect(-15,-17,26,9);ctx.strokeStyle=P.out;ctx.strokeRect(-15,-17,26,9);
+ ctx.fillStyle=P.c2;ctx.fillRect(-5,-23,13,7);ctx.strokeRect(-5,-23,13,7);
+ ctx.fillStyle=P.c1;ctx.fillRect(-2,-27,10,4.4);ctx.strokeRect(-2,-27,10,4.4); // 双层炮塔
+ ctx.save();ctx.translate(7,-21);ctx.rotate(P.atk*-.1);ctx.fillStyle='#4a5054';ctx.fillRect(0,-2,16,4);ctx.fillRect(15,-3,4,6);ctx.restore();
+ ctx.strokeStyle='#5a6266';ctx.lineWidth=1.4;dline(-12,-23,-16,-34,1.4,'#5a6266');ctx.lineWidth=1; // 天线
+ ctx.fillStyle='#58c840';ctx.fillRect(-13,-15,3,3);
+};
+DRAWFS.reconjet=function(u,P){
+ ctx.fillStyle=P.c1;ctx.beginPath();ctx.moveTo(-20,-14);ctx.lineTo(10,-17);ctx.lineTo(20,-14);ctx.lineTo(12,-10);ctx.lineTo(-14,-10);ctx.closePath();ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle=P.c2;tri(-2,-17,6,-17,2,-23,'#c8d4e0'); // 垂尾
+ ctx.fillStyle='#7890b0';ctx.beginPath();ctx.moveTo(2,-16);ctx.lineTo(10,-16);ctx.lineTo(7,-19.6);ctx.closePath();ctx.fill(); // 座舱
+ ctx.fillStyle=P.c1;tri(-6,-12,-1,-12,-8,-6,'#8a9298');tri(-6,-13,-1,-13,-9,-19,'#8a9298'); // 后掠翼
+ ctx.fillStyle='#2e3438';ctx.fillRect(-20,-14.6,5,1.6);
+ ctx.fillStyle='#ff9040';ctx.beginPath();ctx.arc(20,-14.2,1.8+P.atk,0,7);ctx.fill(); // 尾焰
+ ctx.fillStyle='#d83828';ctx.fillRect(8,-12.4,3,1.6);
+};
+/* —— T10 未来华夏 —— */
+DRAWFS.exosold=function(u,P){
+ dlegs(P.walk,'#6a7890','#3a4454');
+ dtorso(-6,-24,12.4,13,'#c8d4e0',P.out,2);
+ ctx.fillStyle='#7890b0';ctx.fillRect(-7,-25,14.4,4);
+ ctx.fillStyle='#58d8e8';ctx.fillRect(-1.4,-19,3,3); // 能源核
+ ctx.fillStyle='#3a4454';ctx.fillRect(-8.4,-18,3,8);ctx.fillRect(5.4,-18,3,8); // 机械臂外架
+ dhead(0,-31,6.4,'#d8e0e8',P.out);
+ ctx.fillStyle='#7890b0';ctx.beginPath();ctx.arc(0,-32,6.6,Math.PI,0);ctx.fill();
+ ctx.fillStyle='#58d8e8';ctx.fillRect(-3.4,-33,7,2.4); // 能量目镜
+ ctx.fillStyle='#3a4454';ctx.fillRect(4.4,-20,12,3.4);ctx.fillStyle='#8a94a8';ctx.fillRect(15,-21,4,5.4);
+ ctx.save();ctx.translate(6,-19);ctx.rotate(P.atk*-.08); // 能量枪
+ ctx.fillStyle='#8a94a8';ctx.fillRect(0,-2.4,14,4.8);ctx.fillStyle='#58d8e8';ctx.fillRect(3,-1.4,8,2.4);ctx.restore();
+};
+DRAWFS.killmech=function(u,P){
+ ctx.fillStyle='#3a4248';
+ ctx.fillRect(-10+P.walk*2.4,-15,8,15);ctx.fillRect(2.4-P.walk*2.4,-15,8,15);
+ ctx.fillStyle='#58d8e8';ctx.fillRect(-8.4+P.walk*2.4,-6,4.4,2);ctx.fillRect(4-P.walk*2.4,-6,4.4,2);
+ dtorso(-15,-42,30,28,P.c1,P.out);
+ ctx.fillStyle=P.c2;ctx.fillRect(-15,-42,30,6);
+ ctx.fillStyle='#ff8830';ctx.beginPath();ctx.arc(0,-28,3.6,0,7);ctx.fill(); // 反应堆
+ ctx.strokeStyle='rgba(255,136,48,.5)';ctx.beginPath();ctx.arc(0,-28,5.6,0,7);ctx.stroke();
+ px2(-22,-40,8,16,P.c2);px2(14,-40,8,16,P.c2); // 双肩
+ ctx.fillStyle='#3a4248';ctx.fillRect(-24,-46,10,7);ctx.fillRect(14,-46,10,7); // 肩炮
+ ctx.fillStyle='#23282c';ctx.fillRect(-24,-44,7,3.4);ctx.fillRect(17,-44,7,3.4);
+ px2(-9,-49,18,8,P.c2);
+ ctx.fillStyle=A2eye(u);ctx.fillRect(3,-47,6,3);
+ dline(14,-30,24,-34-P.atk*4,4,'#3a4248');ctx.fillStyle='#c05848';ctx.fillRect(22,-37-P.atk*4,7,9); // 臂炮
+};
+DRAWFS.laserchar=function(u,P){
+ ctx.fillStyle='rgba(88,216,232,.3)';ctx.beginPath();ctx.ellipse(0,-1.4,18,4,0,0,7);ctx.fill(); // 悬浮光
+ ctx.fillStyle=P.c1;ctx.beginPath();ctx.moveTo(-17,-14);ctx.lineTo(17,-14);ctx.lineTo(13,-6);ctx.lineTo(-13,-6);ctx.closePath();ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle=P.c2;ctx.fillRect(-14,-21,28,8);ctx.strokeStyle=P.out;ctx.strokeRect(-14,-21,28,8);
+ ctx.fillStyle='#58d8e8';ctx.fillRect(-9,-19,8,3.4); // 能量槽
+ ctx.save();ctx.translate(4,-21);ctx.rotate(P.atk*-.06);
+ ctx.fillStyle='#6a5890';ctx.fillRect(0,-2.6,24,5.2);
+ ctx.fillStyle='#d080ff';ctx.fillRect(23,-3.4,4,6.8);
+ ctx.fillStyle='#f0e0ff';ctx.beginPath();ctx.arc(2,0,3,0,7);ctx.fill();ctx.restore();
+};
+function px2(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h);}
+/* —— 十位名将：每人独立体型与标志装备 —— */
+DRAWFS.xtian=function(u,P){ // 刑天：无首，以乳为目以脐为口，左干右戚
+ dlegs(P.walk,'#5e4426','#3e2c18');
+ dtorso(-8.4,-30,17,30,P.c1,P.out,4); // 魁梧无颈巨躯
+ ctx.fillStyle='#8a6a44';ctx.fillRect(-8.4,-14,17,4); // 兽皮腰
+ ctx.fillStyle=P.skin;ctx.beginPath();ctx.arc(-3.4,-22,2.2,0,7);ctx.arc(3.4,-22,2.2,0,7);ctx.fill(); // 乳为目
+ ctx.fillStyle=P.skin;ctx.fillRect(-3.4,-22,1,0);
+ ctx.fillStyle='#2a1c10';ctx.beginPath();ctx.arc(-3.4,-22,1,0,7);ctx.arc(3.4,-22,1,0,7);ctx.fill();
+ ctx.fillStyle=P.skin;ctx.beginPath();ctx.ellipse(0,-12,2.6,1.8,0,0,7);ctx.fill(); // 脐为口
+ ctx.strokeStyle='#2a1c10';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-2,-12);ctx.lineTo(2,-12);ctx.stroke();ctx.lineWidth=1;
+ ctx.fillStyle='#e8e0d0';ctx.beginPath();ctx.arc(-5,-27,1.6,0,7);ctx.arc(5.4,-27,1.6,0,7);ctx.fill(); // 骨饰
+ ctx.fillStyle='#c8b080';ctx.fillRect(-22,-26,10,22);ctx.strokeStyle=P.out;ctx.strokeRect(-22,-26,10,22); // 干（盾）
+ ctx.fillStyle='#a08850';ctx.fillRect(-20,-23,6,17);
+ ctx.save();ctx.translate(9,-26);ctx.rotate(-.4-P.atk*1.1); // 戚（大斧）
+ dline(0,4,0,-16,3,'#7a5c34');
+ ctx.fillStyle='#9aa2aa';ctx.beginPath();ctx.arc(0,-17,6.4,Math.PI*.85,Math.PI*2.1);ctx.fill();
+ ctx.fillStyle='#c8d0d8';ctx.beginPath();ctx.arc(0,-18,3.4,Math.PI,0);ctx.fill();ctx.restore();
+};
+DRAWFS.chiyou=function(u,P){ // 蚩尤：铜头铁额双角，肩生骨刺
+ dlegs(P.walk,'#3e4a3c','#2a3428');
+ dtorso(-7.4,-24,15,13,P.c1,P.out,2);
+ ctx.fillStyle='#5a6a58';ctx.fillRect(-8.4,-26,17.4,5);
+ tri(-8.4,-26,-11,-33,-5.4,-26,'#8a9a78');tri(8.4,-26,11,-33,5.4,-26,'#8a9a78'); // 肩刺
+ ctx.fillStyle='#4a5a48';ctx.fillRect(-6.4,-13,13.4,3.4);
+ dhead(0,-30,7,'#8a9a78',P.out); // 铜面
+ ctx.fillStyle='#5a6a58';ctx.fillRect(-6.4,-33,12.8,6);
+ ctx.fillStyle='#ffd850';ctx.fillRect(-4.4,-32,3,2.6);ctx.fillRect(1.6,-32,3,2.6); // 铜目
+ ctx.strokeStyle='#5a6a58';ctx.lineWidth=2.6;
+ ctx.beginPath();ctx.moveTo(-5,-36);ctx.quadraticCurveTo(-10,-44,-6,-49);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(5,-36);ctx.quadraticCurveTo(10,-44,6,-49);ctx.stroke();ctx.lineWidth=1; // 双角
+ ctx.save();ctx.translate(9,-20);ctx.rotate(-.6-P.atk);
+ dline(0,2,12,-10,3,'#6a5a3e');
+ ctx.fillStyle='#9aa2aa';ctx.beginPath();ctx.arc(13,-11,4.8,-.8,1.8);ctx.fill();ctx.restore(); // 大斧
+};
+DRAWFS.jiangziya=function(u,P){ // 姜子牙：道袍宽袖白须，打神鞭
+ dlegs(P.walk,'#c8bca0','#a89878');
+ ctx.fillStyle=P.c1; // 道袍（下摆展开）
+ ctx.beginPath();ctx.moveTo(-6,-24);ctx.lineTo(6,-24);ctx.lineTo(9.4,0);ctx.quadraticCurveTo(0,3,-9.4,0);ctx.closePath();ctx.fill();
+ ctx.strokeStyle=P.out;ctx.stroke();
+ dtorso(-5.6,-24,11.4,8,P.c2,P.out);
+ dhead(0,-30,6.2,P.skin,P.out);
+ ctx.fillStyle='#e8e4dc';ctx.beginPath();ctx.arc(0,-31,6.4,Math.PI*.9,Math.PI*2.1);ctx.fill(); // 白发
+ ctx.fillStyle='#e8e4dc';ctx.beginPath();ctx.moveTo(1.4,-27);ctx.quadraticCurveTo(8,-22,7.4,-11);ctx.quadraticCurveTo(3.4,-19,.4,-24);ctx.closePath();ctx.fill(); // 长须
+ tri(-4.4,-38,0,-46,4.4,-38,'#4a4038');ctx.fillStyle='#8a7a5a';ctx.fillRect(-5,-40,10,3); // 道冠
+ deye(3,-30);
+ ctx.fillStyle='#d83828';ctx.fillRect(-6.4,-20,13.4,2); // 束带
+ ctx.save();ctx.translate(7,-18);ctx.rotate(-.5-P.atk*.8); // 打神鞭
+ dline(0,6,3,-20,2.8,'#c8a050');
+ ctx.fillStyle='#ffd850';ctx.beginPath();ctx.arc(3.4,-21,3,0,7);ctx.fill();
+ ctx.fillStyle='#f0b040';ctx.fillRect(0,-11,6.4,2.4);ctx.restore();
+};
+DRAWFS.baiqi=function(u,P){ // 白起：黑甲鬼面黑披风
+ dlegs(P.walk,'#1e2228','#14181c');
+ dtorso(-6.4,-24,13,13,'#2e343c',P.out,3);
+ ctx.fillStyle='#1e2228';ctx.fillRect(-7.4,-26,15.4,4); // 黑肩
+ ctx.fillStyle='#3a424c';ctx.fillRect(-6.4,-13,13.4,3);
+ dhead(0,-30,6.6,'#c89a70',P.out);
+ ctx.fillStyle='#1a1e24';ctx.beginPath();ctx.arc(0,-31,7,Math.PI*.9,Math.PI*2.1);ctx.fill(); // 鬼面盔
+ ctx.fillStyle='#d83828';ctx.fillRect(-4.4,-31,3,1.6);ctx.fillRect(1.6,-31,3,1.6); // 红目缝
+ ctx.fillStyle='#1a1e24';tri(-5,-29,-2.4,-25,-.4,-29,'#1a1e24'); // 面甲纹
+ ctx.save();ctx.translate(6,-16);ctx.rotate(-.5-P.atk*.9); // 长剑
+ ctx.fillStyle='#b8c0cc';ctx.fillRect(-1.6,-18,3.2,20);
+ ctx.fillStyle='#e4eaf0';ctx.fillRect(-.4,-18,1.2,20);
+ ctx.fillStyle='#4a3030';ctx.fillRect(-4,1.6,9,2.6);ctx.restore();
+};
+DRAWFS.huoqubing=function(u,P){ // 霍去病：白马银甲马槊
+ ctx.fillStyle='#eceae2';ctx.beginPath();ctx.ellipse(0,-16,13,7.8,0,0,7);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle='#d8d4c8';ctx.fillRect(-4.4,-24,9,4.4);
+ ctx.fillStyle='#eceae2';ctx.fillRect(8.6,-26,5.4,10);ctx.beginPath();ctx.arc(11.2,-27,4.2,0,7);ctx.fill();ctx.stroke();
+ ctx.fillStyle='#4a3a2e';ctx.fillRect(-9.4+P.walk*2.8,-9,3.8,9);ctx.fillRect(5.4-P.walk*2.8,-9,3.8,9);
+ ctx.save();ctx.translate(-2,-27);
+ ctx.fillStyle='#4a3a2e';ctx.fillRect(-3.4+P.walk,-11,3.4,11);ctx.fillRect(1.2-P.walk,-11,3.4,11);
+ dtorso(-5.4,-22,11,11,'#c8ccd4',P.out,2);
+ ctx.fillStyle='#8890a0';ctx.fillRect(-5.4,-22,11,2.6);
+ dhead(0,-29,6,P.skin,P.out);
+ ctx.fillStyle='#c8ccd4';ctx.beginPath();ctx.arc(0,-30,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.6,-31,13.2,2.4);
+ ctx.fillStyle='#d83828';ctx.fillRect(-1.2,-40,2.4,7);ctx.beginPath();ctx.arc(0,-41,2,0,7);ctx.fill();
+ deye(3,-29);ctx.restore();
+ ctx.save();ctx.translate(7,-22);ctx.rotate(-.12-P.atk*.15); // 马槊平持
+ dline(-4,4,22,-6,2.6,'#8a6a3e');
+ tri(22,-6,28,-8.4,26,-3,'#d8dee6');
+ ctx.fillStyle='#d83828';ctx.beginPath();ctx.arc(19,-5.4,2.4,0,7);ctx.fill();ctx.restore();
+};
+DRAWFS.lijing=function(u,P){ // 李靖：金甲凤翅盔，陌刀拄地
+ dlegs(P.walk,'#6a5a2e','#4a3e1c');
+ dtorso(-6.6,-24,13.4,13,P.c1,P.out,3);
+ ctx.fillStyle='#f0d880';ctx.fillRect(-7.6,-26,15.4,4.6); // 金肩
+ ctx.fillStyle='#fff8d0';ctx.beginPath();ctx.arc(0,-19,2.8,0,7);ctx.fill();
+ dhead(0,-31,6.4,P.skin,P.out);
+ ctx.fillStyle='#e8c050';ctx.beginPath();ctx.arc(0,-32,6.8,Math.PI,0);ctx.fill();ctx.fillRect(-7.2,-33,14.4,2.6);
+ tri(-7.6,-33,-5.4,-41,-2.4,-33,'#f0d880');tri(7.6,-33,5.4,-41,2.4,-33,'#f0d880'); // 凤翅
+ ctx.fillStyle='#d83828';ctx.fillRect(-1.4,-44,2.8,8);ctx.beginPath();ctx.arc(0,-45,2.2,0,7);ctx.fill();
+ deye(3,-31);
+ dline(10,-6,13,-34,3,'#6a5638'); // 陌刀拄地
+ ctx.fillStyle='#d8dee6';ctx.beginPath();ctx.moveTo(11,-30);ctx.lineTo(20,-34);ctx.lineTo(17,-24);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#d83828';ctx.beginPath();ctx.arc(11,-30,2.4,0,7);ctx.fill();
+};
+DRAWFS.yuefei=function(u,P){ // 岳飞：黑马绿甲背旗红缨枪
+ ctx.fillStyle='#3a3a40';ctx.beginPath();ctx.ellipse(0,-16,13,7.8,0,0,7);ctx.fill();ctx.strokeStyle=P.out;ctx.stroke();
+ ctx.fillStyle='#2a2a30';ctx.fillRect(-4.4,-24,9,4.4);
+ ctx.fillStyle='#3a3a40';ctx.fillRect(8.6,-26,5.4,10);ctx.beginPath();ctx.arc(11.2,-27,4.2,0,7);ctx.fill();ctx.stroke();
+ tri(13.4,-31,15.4,-36,17.4,-31,'#d8d8e0');
+ ctx.fillStyle='#26262c';ctx.fillRect(-9.4+P.walk*2.8,-9,3.8,9);ctx.fillRect(5.4-P.walk*2.8,-9,3.8,9);
+ ctx.save();ctx.translate(-2,-27);
+ ctx.fillStyle='#26262c';ctx.fillRect(-3.4+P.walk,-11,3.4,11);ctx.fillRect(1.2-P.walk,-11,3.4,11);
+ dtorso(-5.4,-22,11,11,P.c1,P.out,2);
+ ctx.fillStyle='#2a4430';ctx.fillRect(-5.4,-22,11,2.6);
+ dhead(0,-29,6,P.skin,P.out);
+ ctx.fillStyle='#2e4a36';ctx.beginPath();ctx.arc(0,-30,6.4,Math.PI,0);ctx.fill();ctx.fillRect(-6.6,-31,13.2,2.4);
+ ctx.fillStyle='#d83828';ctx.fillRect(-1.2,-40,2.4,7);ctx.beginPath();ctx.arc(0,-41,2,0,7);ctx.fill();
+ deye(3,-29);ctx.restore();
+ ctx.strokeStyle='#5a4a34';ctx.lineWidth=1.6;dline(-7,-22,-12,-44,1.6,'#5a4a34'); // 背旗杆
+ ctx.fillStyle='#d83828';ctx.fillRect(-21,-43,10,13);
+ ctx.fillStyle='#ffd850';ctx.font='bold 8px sans-serif';ctx.textAlign='center';ctx.fillText('岳',-16,-33.4); // 岳字旗
+ ctx.save();ctx.translate(7,-20);ctx.rotate(-.2-P.atk*.2); // 红缨枪刺
+ dline(-2,6,14,-16,2.4,'#8a6a3e');
+ tri(14,-16,18,-22,17,-13,'#d8dee6');
+ ctx.fillStyle='#d83828';ctx.beginPath();ctx.arc(12,-14,3,0,7);ctx.fill();ctx.restore();
+};
+DRAWFS.qijiguang=function(u,P){ // 戚继光：红胖袄明帽火铳腰刀
+ dlegs(P.walk,'#4a4238','#322c24');
+ dtorso(-5.6,-23,11.4,12,P.c1,P.out,3); // 红胖袄
+ ctx.fillStyle='#e0c8a0';ctx.fillRect(-5.6,-17,11.4,2.2);
+ dhead(0,-29,6.2,P.skin,P.out);
+ ctx.fillStyle='#3a4450';ctx.beginPath();ctx.arc(0,-30,7.2,Math.PI,0);ctx.fill();
+ ctx.fillStyle='#5a6a7a';ctx.beginPath();ctx.arc(0,-33,4,Math.PI,0);ctx.fill();
+ ctx.fillStyle='#c03828';ctx.fillRect(-7.6,-32,15.2,1.8); // 红缨沿
+ deye(3,-29);
+ ctx.save();ctx.translate(5,-19);ctx.rotate(P.atk*-.06); // 火铳
+ ctx.fillStyle='#3a3e44';ctx.fillRect(-2,-2.4,20,4.8);ctx.fillStyle='#5a6a7a';ctx.fillRect(-2,-2.4,6,4.8);
+ ctx.fillStyle='#6a5230';ctx.fillRect(-2,.4,9,3);
+ ctx.fillStyle='#ffd850';ctx.beginPath();ctx.arc(18.4,-.4,1.4+P.atk,0,7);ctx.fill();ctx.restore();
+ ctx.fillStyle='#8a6a3e';ctx.fillRect(-8,-14,3,10);ctx.fillStyle='#c8ced6';ctx.fillRect(-8.4,-16,3.8,3); // 腰刀
+};
+DRAWFS.zhenguo=function(u,P){ // 振国将军：大檐帽望远镜指挥刀
+ dlegs(P.walk,'#3c4434','#282f20');
+ dtorso(-6,-23,12.4,12,P.c1,P.out);
+ ctx.fillStyle='#4e5a40';ctx.fillRect(-6,-19,12.4,3); // 武装带
+ ctx.fillStyle='#c8a040';ctx.fillRect(-1.4,-19,3,3);
+ dhead(0,-29,6.2,P.skin,P.out);
+ ctx.fillStyle='#4a5a40';ctx.beginPath();ctx.arc(0,-30,6.6,Math.PI,0);ctx.fill();
+ ctx.fillStyle='#36422c';ctx.beginPath();ctx.arc(0,-33,3.6,Math.PI,0);ctx.fill();ctx.fillRect(-7,-34,14,2.6); // 大檐帽
+ ctx.fillStyle='#c8a040';ctx.fillRect(-2,-37,4,3.4);
+ deye(3,-29);
+ ctx.fillStyle='#2e3438';ctx.fillRect(-1.4,-27,4.4,2.6);ctx.fillRect(3.4,-27,4.4,2.6); // 望远镜
+ ctx.strokeStyle='#4a4438';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(-1,-26);ctx.lineTo(-4.4,-24);ctx.stroke();ctx.lineWidth=1;
+ ctx.save();ctx.translate(8,-14);ctx.rotate(-.7-P.atk*.5); // 指挥刀前指
+ ctx.fillStyle='#d8dee6';ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(10,-2,14,-10);ctx.lineTo(12.4,-11);ctx.quadraticCurveTo(8,-4,0,-2);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#c8a040';ctx.fillRect(-2.4,-1.4,3.4,5.4);ctx.restore();
+};
+DRAWFS.xuannv=function(u,P){ // 玄女机神：女性轮廓机甲+光翼+双浮游晶体
+ ctx.fillStyle='rgba(88,216,232,.3)';
+ var wg=Math.sin(u.animT*6)*4;
+ ctx.beginPath();ctx.moveTo(-5,-40);ctx.quadraticCurveTo(-26,-56-wg,-34,-36);ctx.quadraticCurveTo(-20,-32,-5,-30);ctx.fill();
+ ctx.beginPath();ctx.moveTo(5,-40);ctx.quadraticCurveTo(26,-56-wg,34,-36);ctx.quadraticCurveTo(20,-32,5,-30);ctx.fill(); // 光翼
+ dlegs(P.walk,'#8a94b0','#4a5468');
+ ctx.fillStyle=P.c1;ctx.beginPath();ctx.moveTo(-6.4,-24);ctx.lineTo(6.4,-24);ctx.lineTo(4.4,-15);ctx.lineTo(-4.4,-15);ctx.lineTo(-7.4,0);ctx.lineTo(-2.4,0);ctx.lineTo(0,-8);ctx.lineTo(2.4,0);ctx.lineTo(7.4,0);ctx.lineTo(4.4,-15);ctx.lineTo(6.4,-24);ctx.closePath();ctx.fill(); // 裙甲轮廓
+ ctx.strokeStyle=P.out;ctx.stroke();
+ dtorso(-5.6,-34,11.4,11,P.c1,P.out);
+ ctx.fillStyle=P.c2;ctx.fillRect(-7.4,-36,15.4,4.6);
+ ctx.fillStyle='#58d8e8';ctx.beginPath();ctx.arc(0,-29,2.4,0,7);ctx.fill(); // 胸核
+ dhead(0,-40,5.6,'#e8e0f0',P.out);
+ ctx.fillStyle='#2e3438';ctx.fillRect(-5.4,-43,10.8,4);
+ ctx.fillStyle='#58d8e8';ctx.fillRect(-3.4,-42,6.8,2.2); // 能量目镜
+ ctx.fillStyle=P.c2;ctx.fillRect(-2.4,-48,4.8,3.4); // 冠
+ ctx.fillStyle='#3a4454';ctx.fillRect(-9.4,-33,3.4,9);ctx.fillRect(6.4,-33,3.4,9);
+ ctx.save();ctx.translate(7.4,-28);ctx.rotate(P.atk*-.08);
+ ctx.fillStyle='#8a94a8';ctx.fillRect(0,-2.2,13,4.4);ctx.fillStyle='#d080ff';ctx.fillRect(12,-3,4.4,6);ctx.restore(); // 紫光炮
+ var or0=u.animT*3;
+ for(var o0=0;o0<2;o0++){var oa=or0+o0*Math.PI;
+  ctx.fillStyle='#d080ff';ctx.beginPath();ctx.arc(Math.cos(oa)*13,-26+Math.sin(oa)*5,2.4,0,7);ctx.fill();
+  ctx.fillStyle='rgba(208,128,255,.4)';ctx.beginPath();ctx.arc(Math.cos(oa)*13,-26+Math.sin(oa)*5,4.4,0,7);ctx.fill();} // 浮游晶体
+};
+/* 名将与兵种 → 建模函数映射 */
+var DRAW_MAP={'原始人':'wildman','掷石手':'slinger','部落勇士':'tribal','猎手':'hunter','戈武士':'gewarrior','青铜盾卫':'shieldguard','商周弓手':'zhouarcher','魏武卒':'weizu','燕赵铁骑':'zhaorider','强弩手':'crossbower','羽林骑':'yulinrider','陷阵营':'xianzhen','霹雳车':'leiliche','陌刀手':'modaoman','玄甲骑':'xuanjiarider','床子弩':'chuangnu','突火枪手':'tuhuogun','回回炮':'huippao','震天雷手':'zhentian','神机铳手':'shenji','佛郎机车':'fulangche','偏厢车':'pianxiang','机枪手':'jiguaner','装甲车':'armoredcar','侦察战机':'reconjet','机甲战士':'exosold','歼灭机甲':'killmech','激光战车':'laserchar','刑天':'xtian','蚩尤':'chiyou','姜子牙':'jiangziya','白起':'baiqi','霍去病':'huoqubing','李靖':'lijing','岳飞':'yuefei','戚继光':'qijiguang','振国将军':'zhenguo','玄女机神':'xuannv'};
 function drawProj(p){
  var P=p.P,k=Math.min(1,p.t/p.dur);
  if(P.inst)return;
