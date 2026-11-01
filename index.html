@@ -75,6 +75,8 @@
 .ewg-big{font-size:40px;font-weight:900;letter-spacing:8px;}
 .ewg-big.win{color:#2e8a2e;text-shadow:0 3px 0 #bfe8a8;}
 .ewg-big.lose{color:#c03830;text-shadow:0 3px 0 #f0b8a8;}
+/* 旋转提示已退役：竖屏由 JS 伪横屏接管 */
+.ewg-rotate-tip{display:none !important;}
 /* ===== 移动端适配：竖屏下页面自身旋转 90° 伪横屏 =====
    微信 XWeb 的 100vh/100vw 与真实屏幕不符（四周露底），尺寸由 JS 按 innerWidth/innerHeight 动态设定，内容区弹性铺满 */
 #ewg-root.ewg-portrait{
@@ -86,10 +88,12 @@
  background:#22301f;
 }
 #ewg-root.ewg-portrait .ewg-field{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;}
-#ewg-root.ewg-portrait #ewg-canvas{width:auto;height:auto;max-width:100%;max-height:100%;}
+#ewg-root.ewg-portrait #ewg-canvas{width:100%;height:100%;object-fit:cover;}
 #ewg-root.ewg-portrait .ewg-shopbar{flex:0 0 auto;}
 #ewg-root.ewg-portrait .ewg-topbar{flex:0 0 auto;}
 body.ewg-portrait-body{overflow:hidden;}
+ body.ewg-portrait-body .ewg-field{display:flex;align-items:center;justify-content:center;min-height:0;}
+ body.ewg-portrait-body #ewg-canvas{width:100%;height:100%;object-fit:cover;}
 @media (pointer:coarse){
  .ewg-btn{padding:6px 14px;}
  .ewg-active-chip{padding:6px 10px;}
@@ -403,15 +407,22 @@ function prodRate(s){return PROD[s.age]||8;}
 /* ================= 移动端伪横屏：JS 动态尺寸（XWeb 的 vh/vw 不可靠） ================= */
 var rootEl=document.getElementById('ewg-root');
 function applyPortraitLayout(){
- var w=window.innerWidth,h=window.innerHeight,portrait=h>w;
- if(portrait&&rootEl){
+ var w=window.innerWidth,h=window.innerHeight;
+ if(!rootEl)return;
+ if(h>w){ // 竖屏：伪横屏旋转
   rootEl.classList.add('ewg-portrait');
   rootEl.style.width=h+'px';
   rootEl.style.height=w+'px';
   document.body.classList.add('ewg-portrait-body');
- }else if(rootEl){
+ }else if(w<1000){ // 横屏小屏：不旋转但铺满
   rootEl.classList.remove('ewg-portrait');
-  rootEl.style.width='';rootEl.style.height='';
+  rootEl.style.width=w+'px';
+  rootEl.style.height=h+'px';
+  document.body.classList.add('ewg-portrait-body');
+ }else{ // 桌面大屏：正常布局
+  rootEl.classList.remove('ewg-portrait');
+  rootEl.style.width='';
+  rootEl.style.height='';
   document.body.classList.remove('ewg-portrait-body');
  }
 }
