@@ -454,17 +454,21 @@ function applyPortraitLayout(){
    rootEl.appendChild(ht);setTimeout(function(){if(ht.parentNode)ht.parentNode.removeChild(ht);},3500);
   }
   document.body.classList.add('ewg-portrait-body');
- }else if(w<1000){ // 横屏小屏：铺满居中
+ }else if(w<1000){ // 横屏小屏：铺满（左上定位）
   rootEl.classList.remove('ewg-portrait');
   rootEl.style.width=w+'px';
   rootEl.style.height=h+'px';
-  rootEl.style.transform='translate(-50%,-50%)';
+  rootEl.style.transform='';
+  rootEl.style.top='0px';
+  rootEl.style.left='0px';
   document.body.classList.add('ewg-portrait-body');
  }else{ // 桌面大屏：正常布局
   rootEl.classList.remove('ewg-portrait');
   rootEl.style.width='';
   rootEl.style.height='';
   rootEl.style.transform='';
+  rootEl.style.top='';
+  rootEl.style.left='';
   document.body.classList.remove('ewg-portrait-body');
  }
 }
