@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store">
 <title>时代战争：华夏风云 Demo</title>
 <style>html,body{margin:0;padding:0;background:#22301f;}body{display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:14px;box-sizing:border-box;}</style>
 </head>
@@ -78,11 +79,11 @@
 .ewg-rotate-tip{display:none;position:fixed;inset:0;background:#22301f;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#e8d8b0;font-size:20px;letter-spacing:2px;}
 .ewg-rotate-tip .ewg-rot-icon{font-size:64px;animation:ewgrot 1.6s ease-in-out infinite;}
 @keyframes ewgrot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
-@media (orientation:portrait) and (max-width:920px){
+@media (max-aspect-ratio: 1/1) and (max-width: 920px){
  #ewg-root{display:none;}
  .ewg-rotate-tip{display:flex;}
 }
-@media (orientation:landscape) and (max-height:540px){
+@media (orientation: landscape) and (max-height: 540px){
  #ewg-root{padding:4px;border-radius:8px;max-width:none;}
  .ewg-topbar{margin-bottom:4px;}
  .ewg-sidebox{padding:3px 8px;gap:1px;border-radius:7px;}
@@ -2767,7 +2768,7 @@ function updateHUD(){
 /* ================= 主循环（挂钟计时，抗节流） ================= */
 var hudT=0;
 /* 手机竖屏时挂起游戏（省电+防误触），转回横屏自动继续 */
-var portraitMq=window.matchMedia('(orientation: portrait) and (max-width: 920px)');
+var portraitMq=window.matchMedia('(max-aspect-ratio: 1/1) and (max-width: 920px)');
 function simulate(rdt){
  if(portraitMq.matches)return; // 竖屏：挂起
  if(scene==='menu'||scene==='flow'){
