@@ -80,10 +80,10 @@
 /* ===== 移动端适配：竖屏下页面自身旋转 90° 伪横屏 =====
    微信 XWeb 的 100vh/100vw 与真实屏幕不符（四周露底），尺寸由 JS 按 innerWidth/innerHeight 动态设定，内容区弹性铺满 */
 #ewg-root.ewg-portrait{
- position:fixed; top:0; left:0;
+ position:fixed; top:50%; left:50%;
  margin:0; border-radius:0; max-width:none;
- transform:rotate(90deg) translateY(-100%);
- transform-origin:top left;
+ transform:translate(-50%,-50%) rotate(90deg);
+ transform-origin:center center;
  display:flex; flex-direction:column;
  background:#22301f;
 }
@@ -159,6 +159,7 @@ body.ewg-portrait-body{overflow:hidden;}
         <button class="ewg-btn" id="ewg-btn-pause" data-tooltip="暂停/继续">⏸</button>
         <button class="ewg-btn" id="ewg-btn-speed" data-tooltip="游戏倍速">1x</button>
         <button class="ewg-btn" id="ewg-btn-audio" data-tooltip="全局音效开关">🔊</button>
+        <button class="ewg-btn" id="ewg-btn-shake" data-tooltip="震动反馈开关">📳</button>
         <button class="ewg-btn" id="ewg-btn-menu" data-tooltip="菜单（连点3次打开调试面板）">☰</button>
       </div>
       <span style="font-size:10px;color:var(--ewg-ink);opacity:.7;text-align:center;display:block;line-height:1;">V3</span>
@@ -383,7 +384,7 @@ function castAgeSkill(s){
   case 9: {var cx2=densestPoint(s);
    for(i=0;i<6;i++)fx.push({type:'fireball',x0:s.baseX,y0:GY-230,x1:cx2+(Math.random()-.5)*220,y1:GY-14,t:-i*.09,dur:.7,side:s,dmg:UNITS[n][UNITS[n].length-1].atk*1.3});
    sfx('fire');break;}
-  case 10: {whiteFlash=.3;shake(4);
+  case 10: {whiteFlash=.3;shake(1.6);
    for(i=0;i<3;i++)fx.push({type:'lightning',x:140+i*300+Math.random()*160,t:0});
    var ad4;
    for(i=0;i<units.length;i++){e=units[i];
@@ -402,7 +403,7 @@ var player,ai,units=[],projs=[],tres=[],floats=[],parts=[],beams=[],toasts=[],ba
 var traps=[],burns=[],fx=[];
 var gameTime,spawnCd,aiCd,aiOn=true,autoAge=true,over=false,shakeT=0,shakeAmp=0,whiteFlash=0,hitstopT=0,dashSeq=0,nextTresT=20;
 var stats={kills:0};
-var actx=null,sfxN=0,audioOn=true;
+var actx=null,sfxN=0,audioOn=true,shakeOn=true;
 var menuClicks=0,menuClickT=0;
 
 function newSide(isAI){
@@ -441,26 +442,29 @@ function applyPortraitLayout(){
  var vv=window.visualViewport;
  var h=vv?Math.round(vv.height):window.innerHeight; // 可视高（排除微信标题栏）
  if(!rootEl)return;
- if(h>w){ // 竖屏：伪横屏旋转
+ if(h>w){ // 竖屏：伪横屏旋转（中心锚点+整体缩放）
+  var K=0.82;
   rootEl.classList.add('ewg-portrait');
-  rootEl.style.width=h+'px';
-  rootEl.style.height=w+'px';
-  rootEl.style.transform=portraitFlip>0?'rotate(90deg) translateY(-100%)':'rotate(-90deg) translateX(-100%)';
+  rootEl.style.width=Math.round(h*K)+'px';
+  rootEl.style.height=Math.round(w*K)+'px';
+  rootEl.style.transform='translate(-50%,-50%) rotate('+(portraitFlip>0?90:-90)+'deg)';
   ensureFlipBtn();
   if(!holdTipShown){holdTipShown=true;
    var ht=document.createElement('div');ht.className='ewg-hold-tip';ht.textContent='请横持手机游玩，方向不对点右上 🔄';
    rootEl.appendChild(ht);setTimeout(function(){if(ht.parentNode)ht.parentNode.removeChild(ht);},3500);
   }
   document.body.classList.add('ewg-portrait-body');
- }else if(w<1000){ // 横屏小屏：不旋转但铺满
+ }else if(w<1000){ // 横屏小屏：铺满居中
   rootEl.classList.remove('ewg-portrait');
   rootEl.style.width=w+'px';
   rootEl.style.height=h+'px';
+  rootEl.style.transform='translate(-50%,-50%)';
   document.body.classList.add('ewg-portrait-body');
  }else{ // 桌面大屏：正常布局
   rootEl.classList.remove('ewg-portrait');
   rootEl.style.width='';
   rootEl.style.height='';
+  rootEl.style.transform='';
   document.body.classList.remove('ewg-portrait-body');
  }
 }
@@ -637,7 +641,7 @@ function castSkill(u,foe){ // Batch5 名将主动技（CD 自动释放）
   for(i=0;i<6;i++)fx.push({type:'fireball',x0:u.x,y0:GY-230,x1:cx0+(Math.random()-.5)*180,y1:GY-14,t:-i*.09,dur:.7,side:s,dmg:u.def.atk*.9});
   toast('⚔ 振国将军【饱和打击】！');sfx('fire');
  }else if(n==='玄女机神'){ // 天罚：全屏轨道激光
-  whiteFlash=.3;shake(4);
+  whiteFlash=.3;shake(1.6);
   for(i=0;i<3;i++)fx.push({type:'lightning',x:120+i*300+Math.random()*160,t:0});
   for(i=0;i<units.length;i++){e=units[i];
    if(e.side===s||e.dying)continue;
@@ -697,7 +701,7 @@ function calcDmg(aS,tU,base){
  if(aS.critT>0){dmg*=1.8;crit=true;}
  return {v:Math.round(dmg),c:crit};
 }
-function shake(a){a=Math.min(a,5);shakeT=Math.max(shakeT,.1);shakeAmp=Math.max(shakeAmp,a);}
+function shake(a){if(!shakeOn)return;a=Math.min(a,1.6);shakeT=Math.max(shakeT,.1);shakeAmp=Math.max(shakeAmp,a);}
 function dealToUnit(aS,tU,base,fromX){
  if(tU.dying)return;
  var r=calcDmg(aS,tU,base);
@@ -707,7 +711,7 @@ function dealToUnit(aS,tU,base,fromX){
  // 打击反馈：顿帧+分级震屏+击退
  var heavy=r.v>=(tU.maxHp*.12)||r.c;
  hitstopT=Math.max(hitstopT,heavy?.05:.028);
- shake(heavy?3.2:1.4);
+ shake(heavy?1.2:0.5);
  if(tU.def.k!=='heli'&&!tU.dying){
   var kb=heavy?9:4.5;
   tU.x=Math.max(36,Math.min(W-36,tU.x+(fromX!==undefined?(tU.x-fromX>=0?kb:-kb):(tU.side===player?kb:-kb))));
@@ -738,7 +742,7 @@ function attackBase(u){
  var r=calcDmg(s,{side:foe},u.def.atk);
  if(foe.invulnT>0){floatTxt(u.x+(u.dir>0?30:-30),GY-120,'无敌','#58b8ff',12);return;}
  if(gameTime<150)r.v=Math.max(1,Math.round(r.v*.3)); // 前期保护
- foe.baseHp-=r.v;shake(2.2);hitstopT=Math.max(hitstopT,.02);sfx('basehit');
+ foe.baseHp-=r.v;shake(0.8);hitstopT=Math.max(hitstopT,.02);sfx('basehit');
  floatTxt(foe.baseX,GY-136,r.v,'#ff5040',13);
  if(foe.baseHp<=0){foe.baseHp=0;endGame(s===player);}
 }
@@ -763,7 +767,7 @@ function fireProj(u,tgt){
 function projHit(p){
  var P=p.P,sp=p.splashOver!==undefined?p.splashOver:P.splash;
  if(sp){
-  sfx('boom');puff(p.tx,p.ty,10,P.fire||'#ffb050');shake(1.8);hitstopT=Math.max(hitstopT,.02);
+  sfx('boom');puff(p.tx,p.ty,10,P.fire||'#ffb050');shake(0.7);hitstopT=Math.max(hitstopT,.02);
   var i;for(i=0;i<units.length;i++){var e=units[i];
    if(e.side===p.side||e.dying)continue;
    if(Math.abs(e.x-p.tx)<sp)dealToUnit(p.side,e,p.base,p.tx);}
@@ -777,7 +781,7 @@ function endGame(playerWin){
  if(over)return;over=true;
  var loser=playerWin?ai:player;
  var i;for(i=0;i<40;i++)parts.push({x:loser.baseX+(Math.random()-.5)*60,y:GY-40-Math.random()*40,vx:(Math.random()-.5)*300,vy:-Math.random()*260,t:1.2,col:['#ffb050','#ff7040','#ffe080'][i%3],sz:5});
- shake(5);hitstopT=Math.max(hitstopT,.08);
+ shake(2);hitstopT=Math.max(hitstopT,.08);
  setTimeout(function(){
   document.getElementById('ewg-result-big').textContent=playerWin?'胜 利':'失 败';
   document.getElementById('ewg-result-big').className='ewg-big '+(playerWin?'win':'lose');
@@ -883,7 +887,7 @@ function fireArtifact(s,def){
   else for(j=0;j<hit.length;j++){u=hit[j];
    fx.push({type:'lightning',x:u.x,t:0});
    dealToUnit(s,u,dmg2);}
-  whiteFlash=.25;shake(3);sfx('thunder');
+  whiteFlash=.25;shake(1.2);sfx('thunder');
   toast((s===player?'⚡ 九天落雷！':'敌方召唤九天落雷！'));
  }
 }
@@ -1182,7 +1186,7 @@ function update(dt){
    var k=Math.min(1,F.t/F.dur);
    if(Math.random()<.6)parts.push({x:F.x0+(F.x1-F.x0)*k,y:F.y0+(F.y1-F.y0)*k-(1-k)*40,vx:(Math.random()-.5)*40,vy:30,t:.3,col:Math.random()<.5?'#ff9040':'#ffd050',sz:3});
    if(F.t>=F.dur){
-    sfx('boom');shake(4);hitstopT=Math.max(hitstopT,.06);
+    sfx('boom');shake(1.5);hitstopT=Math.max(hitstopT,.06);
     burns.push({x:F.x1,t:7});
     for(j=0;j<16;j++)parts.push({x:F.x1,y:GY-10,vx:(Math.random()-.5)*260,vy:-Math.random()*220,t:.6+Math.random()*.4,col:['#ff9040','#ffd050','#ff5020'][j%3],sz:4});
     for(j=0;j<units.length;j++){var e2=units[j];
@@ -2597,12 +2601,13 @@ function drawFx(){
  });
 }
 var mainCtx=cv.getContext('2d');
-var pixCv=document.createElement('canvas');pixCv.width=620;pixCv.height=220;
+var PIXS=1;
+var pixCv=document.createElement('canvas');pixCv.width=Math.round(W*PIXS);pixCv.height=Math.round(H*PIXS);
 var pixCtx=pixCv.getContext('2d');
 function draw(){
  uiBars.length=0;
  /* ---- 像素世界层：0.5x 低分辨率渲染 ---- */
- pixCtx.setTransform(.5,0,0,.5,0,0);
+ pixCtx.setTransform(PIXS,0,0,PIXS,0,0);
  if(shakeT>0)pixCtx.translate((Math.random()-.5)*shakeAmp*2,(Math.random()-.5)*shakeAmp*1.6);
  var oldCtx=ctx;ctx=pixCtx;
  if(!clouds){clouds=[];for(var ci=0;ci<4;ci++)clouds.push({x:Math.random()*W,y:20+Math.random()*70,s:.7+Math.random()*.8,v:4+Math.random()*5});decor=makeDecor();}
@@ -2927,6 +2932,9 @@ document.getElementById('ewg-btn-speed').addEventListener('click',function(){
 });
 document.getElementById('ewg-btn-audio').addEventListener('click',function(){
  audioOn=!audioOn;this.textContent=audioOn?'🔊':'🔇';
+});
+document.getElementById('ewg-btn-shake').addEventListener('click',function(){
+ shakeOn=!shakeOn;this.textContent=shakeOn?'📳':'🚫';
 });
 document.getElementById('ewg-skill').addEventListener('click',function(){
  if(scene!=='battle'||over||paused)return;
