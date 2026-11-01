@@ -75,40 +75,21 @@
 .ewg-big{font-size:40px;font-weight:900;letter-spacing:8px;}
 .ewg-big.win{color:#2e8a2e;text-shadow:0 3px 0 #bfe8a8;}
 .ewg-big.lose{color:#c03830;text-shadow:0 3px 0 #f0b8a8;}
-/* ===== 移动端适配：竖屏提示旋转 + 横屏小屏压缩 ===== */
-.ewg-rotate-tip{display:none;}
-/* ===== 移动端适配：竖屏下页面自身旋转 90° 伪横屏（微信内核旋转视口不可靠，业内标准方案） ===== */
-@media (max-aspect-ratio: 1/1) and (max-width: 920px){
- #ewg-root{
-  display:block !important;
-  position:fixed; top:0; left:0;
-  width:100vh; height:100vw;
-  max-width:none;
-  transform:rotate(90deg) translateY(-100%);
-  transform-origin:top left;
-  margin:0; border-radius:0;
-  background:#22301f;
- }
- body{overflow:hidden;}
- .ewg-rotate-tip{display:none !important;}
- /* 伪横屏下内容按“屏幕宽=100vw 的高度预算”排布 */
- #ewg-canvas{width:auto;height:calc(100vw - 175px);max-width:100%;margin:0 auto;display:block;}
- .ewg-topbar{margin-bottom:4px;}
- .ewg-sidebox{padding:3px 8px;gap:1px;border-radius:7px;}
- .ewg-age{font-size:11px;}
- .ewg-prog{height:7px;}
- .ewg-goldrow{font-size:11px;}
- .ewg-btn{padding:3px 9px;font-size:12px;}
- .ewg-shopbar{margin-top:4px;padding:5px;}
- .ewg-card{width:72px;padding:3px 3px 3px;}
- .ewg-card canvas{width:40px;height:40px;}
- .ewg-card .nm{font-size:10px;}
- .ewg-card .tag2{font-size:9px;}
- .ewg-card .cost{font-size:10px;}
- .ewg-treasurebox{width:120px;}
- .ewg-active-chip{font-size:11px;padding:2px 6px;}
- .ewg-field{border-width:2px;}
+/* ===== 移动端适配：竖屏下页面自身旋转 90° 伪横屏 =====
+   微信 XWeb 的 100vh/100vw 与真实屏幕不符（四周露底），尺寸由 JS 按 innerWidth/innerHeight 动态设定，内容区弹性铺满 */
+#ewg-root.ewg-portrait{
+ position:fixed; top:0; left:0;
+ margin:0; border-radius:0; max-width:none;
+ transform:rotate(90deg) translateY(-100%);
+ transform-origin:top left;
+ display:flex; flex-direction:column;
+ background:#22301f;
 }
+#ewg-root.ewg-portrait .ewg-field{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;}
+#ewg-root.ewg-portrait #ewg-canvas{width:auto;height:auto;max-width:100%;max-height:100%;}
+#ewg-root.ewg-portrait .ewg-shopbar{flex:0 0 auto;}
+#ewg-root.ewg-portrait .ewg-topbar{flex:0 0 auto;}
+body.ewg-portrait-body{overflow:hidden;}
 @media (pointer:coarse){
  .ewg-btn{padding:6px 14px;}
  .ewg-active-chip{padding:6px 10px;}
@@ -418,6 +399,25 @@ function boostHp(s){
   if(u.side===s&&!u.dying){var r=1.18;u.maxHp*=r;u.hp*=r;}}
 }
 function prodRate(s){return PROD[s.age]||8;}
+
+/* ================= 移动端伪横屏：JS 动态尺寸（XWeb 的 vh/vw 不可靠） ================= */
+var rootEl=document.getElementById('ewg-root');
+function applyPortraitLayout(){
+ var w=window.innerWidth,h=window.innerHeight,portrait=h>w;
+ if(portrait&&rootEl){
+  rootEl.classList.add('ewg-portrait');
+  rootEl.style.width=h+'px';
+  rootEl.style.height=w+'px';
+  document.body.classList.add('ewg-portrait-body');
+ }else if(rootEl){
+  rootEl.classList.remove('ewg-portrait');
+  rootEl.style.width='';rootEl.style.height='';
+  document.body.classList.remove('ewg-portrait-body');
+ }
+}
+window.addEventListener('resize',applyPortraitLayout);
+window.addEventListener('orientationchange',function(){setTimeout(applyPortraitLayout,80);});
+applyPortraitLayout();
 
 function startBattle(){
  player=newSide(false);ai=newSide(true);
