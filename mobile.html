@@ -83,8 +83,13 @@
  #ewg-root{display:none;}
  .ewg-rotate-tip{display:flex;}
 }
+@media (pointer:coarse){
+ .ewg-btn{padding:6px 14px;}
+ .ewg-active-chip{padding:6px 10px;}
+ .ewg-card{padding-top:8px;padding-bottom:8px;}
+}
 @media (orientation: landscape) and (max-height: 540px){
- #ewg-root{padding:4px;border-radius:8px;max-width:none;}
+ #ewg-root{padding:4px;border-radius:8px;width:100%;max-width:none;box-sizing:border-box;}
  .ewg-topbar{margin-bottom:4px;}
  .ewg-sidebox{padding:3px 8px;gap:1px;border-radius:7px;}
  .ewg-age{font-size:11px;}
@@ -100,11 +105,16 @@
  .ewg-treasurebox{width:120px;}
  .ewg-active-chip{font-size:11px;padding:2px 6px;}
  .ewg-field{border-width:2px;}
-}
-@media (pointer:coarse){
- .ewg-btn{padding:6px 14px;}
- .ewg-active-chip{padding:6px 10px;}
- .ewg-card{padding-top:8px;padding-bottom:8px;}
+ .ewg-panelbox{padding:10px 14px;max-height:96%;}
+ .ewg-title{font-size:22px;letter-spacing:2px;}
+ .ewg-sub{font-size:11px;margin:2px 0 8px;}
+ .ewg-menuhint{display:none;}
+ .ewg-flowgrid{gap:8px;margin:6px 0;}
+ .ewg-flowcard{width:150px;padding:8px;}
+ .ewg-flowcard p{font-size:10px;line-height:1.4;}
+ .ewg-result-stats{gap:10px;font-size:11px;margin:6px 0 10px;}
+ .ewg-result-stats b{font-size:15px;}
+ .ewg-big{font-size:30px;letter-spacing:4px;}
 }
 </style>
 <div class="ewg-stage">
@@ -2911,8 +2921,8 @@ window.__ewgTest={
 };
 })();
 </script>
-<div class="ewg-rotate-tip"><div class="ewg-rot-icon">📱</div><div>请将手机横过来游玩</div><div style="font-size:13px;color:#b09868;">横屏后自动进入战场</div></div>
 </div>
+<div class="ewg-rotate-tip"><div class="ewg-rot-icon">📱</div><div>请将手机横过来游玩</div><div style="font-size:13px;color:#b09868;">横屏后自动进入战场</div></div>
 
 </body>
 </html>
