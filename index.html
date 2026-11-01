@@ -76,12 +76,37 @@
 .ewg-big.win{color:#2e8a2e;text-shadow:0 3px 0 #bfe8a8;}
 .ewg-big.lose{color:#c03830;text-shadow:0 3px 0 #f0b8a8;}
 /* ===== 移动端适配：竖屏提示旋转 + 横屏小屏压缩 ===== */
-.ewg-rotate-tip{display:none;position:fixed;inset:0;background:#22301f;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#e8d8b0;font-size:20px;letter-spacing:2px;}
-.ewg-rotate-tip .ewg-rot-icon{font-size:64px;animation:ewgrot 1.6s ease-in-out infinite;}
-@keyframes ewgrot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
+/* ===== 移动端适配：竖屏下页面自身旋转 90° 伪横屏（微信内核旋转视口不可靠，业内标准方案） ===== */
 @media (max-aspect-ratio: 1/1) and (max-width: 920px){
- #ewg-root{display:none;}
- .ewg-rotate-tip{display:flex;}
+ #ewg-root{
+  display:block !important;
+  position:fixed; top:0; left:0;
+  width:100vh; height:100vw;
+  max-width:none;
+  transform:rotate(90deg) translateY(-100%);
+  transform-origin:top left;
+  margin:0; border-radius:0;
+  background:#22301f;
+ }
+ body{overflow:hidden;}
+ .ewg-rotate-tip{display:none !important;}
+ /* 伪横屏下内容按“屏幕宽=100vw 的高度预算”排布 */
+ #ewg-canvas{width:auto;height:calc(100vw - 175px);max-width:100%;margin:0 auto;display:block;}
+ .ewg-topbar{margin-bottom:4px;}
+ .ewg-sidebox{padding:3px 8px;gap:1px;border-radius:7px;}
+ .ewg-age{font-size:11px;}
+ .ewg-prog{height:7px;}
+ .ewg-goldrow{font-size:11px;}
+ .ewg-btn{padding:3px 9px;font-size:12px;}
+ .ewg-shopbar{margin-top:4px;padding:5px;}
+ .ewg-card{width:72px;padding:3px 3px 3px;}
+ .ewg-card canvas{width:40px;height:40px;}
+ .ewg-card .nm{font-size:10px;}
+ .ewg-card .tag2{font-size:9px;}
+ .ewg-card .cost{font-size:10px;}
+ .ewg-treasurebox{width:120px;}
+ .ewg-active-chip{font-size:11px;padding:2px 6px;}
+ .ewg-field{border-width:2px;}
 }
 @media (pointer:coarse){
  .ewg-btn{padding:6px 14px;}
@@ -2778,10 +2803,8 @@ function updateHUD(){
 
 /* ================= 主循环（挂钟计时，抗节流） ================= */
 var hudT=0;
-/* 手机竖屏时挂起游戏（省电+防误触），转回横屏自动继续 */
-var portraitMq=window.matchMedia('(max-aspect-ratio: 1/1) and (max-width: 920px)');
+/* 微信内核旋转视口不可靠：竖屏由 CSS 伪横屏承担，游戏循环不再挂起 */
 function simulate(rdt){
- if(portraitMq.matches)return; // 竖屏：挂起
  if(scene==='menu'||scene==='flow'){
   if(clouds)clouds.forEach(function(c){c.x+=c.v*rdt;if(c.x>W+80)c.x=-80;});
   return;
@@ -2817,7 +2840,6 @@ setInterval(function(){
 },33);
 function loop(){
  requestAnimationFrame(loop);
- if(portraitMq.matches)return; // 竖屏不渲染
  draw();
 }
 requestAnimationFrame(loop);
